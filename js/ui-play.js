@@ -7,6 +7,8 @@
 import * as Hunt from "./hunt.js";
 import * as Game from "./game.js";
 import * as Storage from "./storage.js";
+import { TEXTS, pickText } from "./texts.js";
+import { launchConfetti } from "./confetti.js";
 
 const $ = (id) => document.getElementById(id);
 
@@ -115,17 +117,19 @@ function renderRiddle() {
   $("riddle-text").textContent = station.riddle;
   $("hint-text").textContent = station.hint || "";
   renderButtons();
+  playAnimation($("riddle-text"), "is-popping");
 }
 
 // Welche Buttons gerade sichtbar sind, hängt vom Fortschritt ab.
 function renderButtons() {
   $("btn-here").hidden = !gpsAvailable;
   $("btn-hint").hidden = !Game.canShowHint(hunt, progress) || hintOpen;
-  $("hint-text").hidden = !hintOpen;
+  $("hint-box").hidden = !hintOpen;
   $("btn-skip").hidden = !Game.canSkip(hunt, progress);
 }
 
-function showFinished() {
+// celebrate = true direkt nach dem Lösen (nicht beim Neuladen der fertigen Jagd)
+function showFinished(celebrate = false) {
   stopClock();
   stopGps();
 
@@ -138,12 +142,21 @@ function showFinished() {
   $("outro-text").textContent = hunt.outro || "";
   $("outro-text").hidden = !hunt.outro;
   showScreen("finished");
+  if (celebrate) launchConfetti("big");
 }
 
 function setFeedback(text, type) {
   const el = $("feedback");
   el.textContent = text;
   el.className = "feedback" + (type ? " is-" + type : "");
+}
+
+// Startet eine CSS-Animation neu – auch wenn sie gerade schon läuft.
+function playAnimation(el, className) {
+  el.classList.remove(className);
+  void el.offsetWidth; // Trick: zwingt den Browser, neu zu rechnen
+  el.classList.add(className);
+  el.addEventListener("animationend", () => el.classList.remove(className), { once: true });
 }
 
 // ---------------------------------------------------------------------------
@@ -167,10 +180,11 @@ async function onAnswerSubmit(event) {
   input.value = "";
 
   if (result.correct) {
-    onStationSolved(result.progress, "Richtig! Weiter geht's.");
+    onStationSolved(result.progress, pickText(TEXTS.right), true);
   } else {
     updateProgress(result.progress);
-    setFeedback("Leider falsch. Versuch's nochmal!", "error");
+    setFeedback(pickText(TEXTS.wrong), "error");
+    playAnimation($("answer-form"), "is-shaking");
     renderButtons();
     input.focus();
   }
@@ -179,11 +193,11 @@ async function onAnswerSubmit(event) {
 function onHereClick() {
   const button = $("btn-here");
   button.disabled = true;
-  button.textContent = "Prüfe Standort …";
+  $("btn-here-label").textContent = "Prüfe Standort …";
 
   const done = () => {
     button.disabled = false;
-    button.textContent = "Ich bin da";
+    $("btn-here-label").textContent = "Ich bin da";
   };
 
   navigator.geolocation.getCurrentPosition(
@@ -196,12 +210,13 @@ function onHereClick() {
       };
       const result = Game.checkLocation(hunt, progress, position, Date.now());
       if (result.result === "solved") {
-        onStationSolved(result.progress, "Gefunden! Weiter geht's.");
+        onStationSolved(result.progress, pickText(TEXTS.found), true);
       } else if (result.result === "inaccurate") {
         setFeedback("GPS gerade ungenau – versuch's gleich nochmal oder gib das Lösungswort ein.", "error");
       } else {
         // Bewusst ohne Entfernung oder Richtung!
-        setFeedback("Hier ist es noch nicht.", "error");
+        setFeedback(pickText(TEXTS.notHere), "error");
+        playAnimation(button, "is-shaking");
       }
     },
     (err) => {
@@ -224,7 +239,7 @@ function onHintClick() {
 function onSkipClick() {
   if (!Game.canSkip(hunt, progress)) return;
   if (!confirm("Diese Station wirklich überspringen?")) return;
-  onStationSolved(Game.skipStation(hunt, progress, Date.now()), "Station übersprungen.");
+  onStationSolved(Game.skipStation(hunt, progress, Date.now()), pickText(TEXTS.skipped));
 }
 
 function onRestartClick() {
@@ -239,16 +254,18 @@ function onRestartClick() {
 }
 
 // Gemeinsamer Weg nach "geschafft" (Wort, GPS oder Überspringen).
-function onStationSolved(newProgress, message) {
+// celebrate = Konfetti (nicht beim Überspringen)
+function onStationSolved(newProgress, message, celebrate = false) {
   updateProgress(newProgress);
   hintOpen = false;
   if (Game.isFinished(progress)) {
     setFeedback("");
-    showFinished();
+    showFinished(true); // Ende immer feiern – auch wenn die letzte übersprungen wurde
   } else {
     renderRiddle();
     setFeedback(message, "success");
     window.scrollTo(0, 0);
+    if (celebrate) launchConfetti("small");
   }
 }
 

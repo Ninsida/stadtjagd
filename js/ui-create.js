@@ -210,7 +210,7 @@ function onHereClick() {
   }
 
   button.disabled = true;
-  button.textContent = "Suche Standort …";
+  $("btn-here-label").textContent = "Suche Standort …";
   status.textContent = "";
 
   navigator.geolocation.getCurrentPosition(
@@ -233,7 +233,7 @@ function onHereClick() {
 
 function resetHereButton() {
   $("btn-here").disabled = false;
-  $("btn-here").textContent = "Station an meinem Standort";
+  $("btn-here-label").textContent = "Station an meinem Standort";
 }
 
 // ---------------------------------------------------------------------------

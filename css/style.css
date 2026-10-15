@@ -1,5 +1,6 @@
 /* style.css – Gemeinsames Design. Mobile first: erst fürs Handy, dann größer.
-   Grundgerüst aus Schritt 2 – der verspielte Feinschliff kommt in Schritt 5. */
+   Stil: verspielt – kräftige Farben, runde Formen, "drückbare" Buttons,
+   kleine Animationen. Alle Farben stehen oben als Variablen. */
 
 :root {
   --color-bg: #fff8ee;
@@ -7,14 +8,19 @@
   --color-text: #2b2235;
   --color-muted: #6f6680;
   --color-primary: #ff5a5f;
-  --color-primary-dark: #e0444a;
+  --color-primary-dark: #d93d43;
   --color-secondary: #2ec4b6;
-  --color-secondary-dark: #22a396;
+  --color-secondary-dark: #1f9a8e;
+  --color-accent: #ffbe0b;
+  --color-accent-soft: #fff3c4;
   --color-success: #2a9d4b;
   --color-error: #d62839;
   --color-border: #eadfcf;
-  --radius: 16px;
+  --radius: 18px;
   --space: 16px;
+  /* Runde Systemschrift, wo vorhanden (Apple) – sonst die normale.
+     Bewusst keine Google Fonts: die würden Daten an Google schicken. */
+  --font: ui-rounded, "SF Pro Rounded", "Nunito", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 }
 
 * {
@@ -23,17 +29,45 @@
 
 body {
   margin: 0;
-  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-family: var(--font);
   font-size: 16px; /* mind. 16 px – sonst zoomt das iPhone beim Tippen ins Feld */
   line-height: 1.5;
   color: var(--color-text);
-  background: var(--color-bg);
+  /* Zwei weiche Farbflecken im Hintergrund */
+  background:
+    radial-gradient(circle at 100% 0%, rgba(255, 190, 11, 0.18), transparent 40%),
+    radial-gradient(circle at 0% 100%, rgba(46, 196, 182, 0.16), transparent 45%),
+    var(--color-bg);
+  background-attachment: fixed;
+  min-height: 100vh;
 }
 
 h1 {
   margin: 0 0 var(--space);
-  font-size: 1.8rem;
-  line-height: 1.2;
+  font-size: 2rem;
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+}
+
+/* Kleine Inline-Icons (SVG) in Buttons und Überschriften */
+.icon {
+  width: 1.25em;
+  height: 1.25em;
+  flex-shrink: 0;
+}
+
+/* Schriftzug "Stadtjagd" */
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  color: var(--color-primary);
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  font-size: 0.85rem;
 }
 
 .screen {
@@ -67,14 +101,28 @@ h1 {
 
 /* ---------- Buttons ---------- */
 
+/* Buttons sehen aus wie dicke Tasten: der dunkle Schatten unten ist die
+   "Seite" der Taste. Beim Drücken rutscht der Button nach unten. */
 .btn {
+  --btn-shadow: transparent;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
   min-height: 48px;
   padding: 12px 20px;
   border: none;
   border-radius: var(--radius);
   font: inherit;
-  font-weight: 700;
+  font-weight: 800;
   cursor: pointer;
+  box-shadow: 0 4px 0 var(--btn-shadow);
+  transition: transform 0.08s ease, box-shadow 0.08s ease;
+}
+
+.btn:active:not(:disabled) {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 var(--btn-shadow);
 }
 
 .btn:disabled {
@@ -83,25 +131,20 @@ h1 {
 }
 
 .btn-primary {
+  --btn-shadow: var(--color-primary-dark);
   background: var(--color-primary);
   color: #fff;
 }
 
-.btn-primary:active {
-  background: var(--color-primary-dark);
-}
-
 .btn-secondary {
+  --btn-shadow: var(--color-secondary-dark);
   background: var(--color-secondary);
   color: #fff;
 }
 
-.btn-secondary:active {
-  background: var(--color-secondary-dark);
-}
-
 .btn-ghost {
-  background: transparent;
+  --btn-shadow: var(--color-border);
+  background: var(--color-surface);
   color: var(--color-text);
   border: 2px solid var(--color-border);
 }
@@ -112,6 +155,12 @@ h1 {
   font-weight: 400;
   text-decoration: underline;
   align-self: center;
+  box-shadow: none;
+}
+
+.btn-link:active:not(:disabled) {
+  transform: none;
+  box-shadow: none;
 }
 
 .btn[hidden] {
@@ -140,9 +189,10 @@ h1 {
 }
 
 .progress-bar {
-  height: 10px;
+  height: 14px;
   margin-top: 8px;
-  background: var(--color-border);
+  background: var(--color-surface);
+  border: 2px solid var(--color-border);
   border-radius: 999px;
   overflow: hidden;
 }
@@ -150,16 +200,42 @@ h1 {
 .progress-fill {
   height: 100%;
   width: 0;
-  background: var(--color-secondary);
-  transition: width 0.4s ease;
+  /* Schräge Streifen wie bei einem Ladebalken */
+  background: repeating-linear-gradient(
+    -45deg,
+    var(--color-secondary) 0 8px,
+    var(--color-secondary-dark) 8px 16px
+  );
+  border-radius: 999px;
+  transition: width 0.6s cubic-bezier(0.34, 1.56, 0.64, 1); /* schießt kurz über das Ziel hinaus */
 }
 
 .riddle {
-  padding: var(--space);
+  position: relative;
+  padding: 28px var(--space) var(--space);
   background: var(--color-surface);
+  border: 3px solid var(--color-text);
   border-radius: var(--radius);
-  font-size: 1.15rem;
-  box-shadow: 0 2px 0 var(--color-border);
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin: 14px 0 4px; /* Platz für das Etikett oben */
+  box-shadow: 5px 5px 0 var(--color-accent);
+}
+
+/* Kleines Etikett "Rätsel" oben links auf der Karte */
+.riddle::before {
+  content: "Rätsel";
+  position: absolute;
+  top: -14px;
+  left: 14px;
+  padding: 2px 12px;
+  background: var(--color-primary);
+  color: #fff;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
 .answer-form {
@@ -199,8 +275,11 @@ h1 {
 }
 
 .hint {
+  display: flex;
+  gap: 10px;
   padding: 12px var(--space);
-  background: #fff3c4;
+  background: var(--color-accent-soft);
+  border: 2px dashed var(--color-accent);
   border-radius: var(--radius);
 }
 
@@ -252,10 +331,43 @@ h1 {
   border-radius: var(--radius);
 }
 
-/* ---------- Geschafft ---------- */
+/* ---------- Intro und Geschafft ---------- */
 
-#screen-finished {
+#screen-intro,
+#screen-finished,
+#screen-error {
+  min-height: 100vh;
+  justify-content: center;
   text-align: center;
+}
+
+#screen-intro .brand {
+  align-self: center;
+}
+
+#screen-intro .btn,
+#screen-finished .btn {
+  margin-top: 8px;
+}
+
+/* Großes rundes Bild-Abzeichen (Karte, Pokal, Fragezeichen) */
+.badge-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  align-self: center;
+  width: 112px;
+  height: 112px;
+  border: 4px solid var(--color-text);
+  border-radius: 50%;
+  background: var(--color-accent);
+  box-shadow: 5px 5px 0 var(--color-primary);
+  color: var(--color-text);
+}
+
+.badge-icon svg {
+  width: 60px;
+  height: 60px;
 }
 
 .finished-title {
@@ -263,10 +375,78 @@ h1 {
   font-size: 1.2rem;
 }
 
+.finished-time {
+  align-self: center;
+  margin: 0;
+  padding: 12px 28px;
+  background: var(--color-surface);
+  border: 3px solid var(--color-text);
+  border-radius: var(--radius);
+  box-shadow: 5px 5px 0 var(--color-secondary);
+}
+
 .finished-time strong {
-  font-size: 2rem;
+  font-size: 2.4rem;
   display: block;
+  line-height: 1.1;
   font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Animationen ---------- */
+
+/* Falsche Antwort: Eingabe wackelt "nein" */
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-8px); }
+  40% { transform: translateX(7px); }
+  60% { transform: translateX(-5px); }
+  80% { transform: translateX(3px); }
+}
+
+/* Neues Rätsel / Erfolg: springt kurz auf */
+@keyframes pop {
+  0% { transform: scale(0.92); opacity: 0; }
+  60% { transform: scale(1.03); opacity: 1; }
+  100% { transform: scale(1); }
+}
+
+/* Pokal und Abzeichen: schaukeln einmal hin und her */
+@keyframes wiggle {
+  0%, 100% { transform: rotate(0); }
+  25% { transform: rotate(-10deg) scale(1.05); }
+  75% { transform: rotate(10deg) scale(1.05); }
+}
+
+.is-shaking {
+  animation: shake 0.4s ease;
+}
+
+.is-popping {
+  animation: pop 0.45s ease-out;
+}
+
+.badge-icon {
+  animation: wiggle 0.9s ease-in-out 0.2s;
+}
+
+/* Konfetti-Zeichenfläche liegt über allem, fängt aber keine Klicks ab */
+.confetti-canvas {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 3000;
+  pointer-events: none;
+}
+
+/* Wer im System "Bewegung reduzieren" eingestellt hat: keine Animationen */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
 }
 
 /* ---------- Ersteller-Ansicht ---------- */
@@ -579,6 +759,12 @@ h2 {
   margin: -8px 0 0;
   color: var(--color-muted);
   font-size: 0.85rem;
+}
+
+/* Kopf des Ergebnis-Bildschirms mittig, passend zum Abzeichen */
+#screen-result > h1,
+#screen-result > h1 + p {
+  text-align: center;
 }
 
 .qr-code {
