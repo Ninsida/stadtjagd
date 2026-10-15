@@ -1,0 +1,270 @@
+/* style.css – Gemeinsames Design. Mobile first: erst fürs Handy, dann größer.
+   Grundgerüst aus Schritt 2 – der verspielte Feinschliff kommt in Schritt 5. */
+
+:root {
+  --color-bg: #fff8ee;
+  --color-surface: #ffffff;
+  --color-text: #2b2235;
+  --color-muted: #6f6680;
+  --color-primary: #ff5a5f;
+  --color-primary-dark: #e0444a;
+  --color-secondary: #2ec4b6;
+  --color-secondary-dark: #22a396;
+  --color-success: #2a9d4b;
+  --color-error: #d62839;
+  --color-border: #eadfcf;
+  --radius: 16px;
+  --space: 16px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-size: 16px; /* mind. 16 px – sonst zoomt das iPhone beim Tippen ins Feld */
+  line-height: 1.5;
+  color: var(--color-text);
+  background: var(--color-bg);
+}
+
+h1 {
+  margin: 0 0 var(--space);
+  font-size: 1.8rem;
+  line-height: 1.2;
+}
+
+.screen {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 560px;
+  margin: 0 auto;
+  padding: var(--space);
+}
+
+.screen[hidden] {
+  display: none;
+}
+
+/* Text mit Zeilenumbrüchen aus der Eingabe anzeigen */
+.text-block {
+  white-space: pre-line;
+  margin: 0;
+}
+
+/* Nur für Screenreader sichtbar */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* ---------- Buttons ---------- */
+
+.btn {
+  min-height: 48px;
+  padding: 12px 20px;
+  border: none;
+  border-radius: var(--radius);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.btn-primary {
+  background: var(--color-primary);
+  color: #fff;
+}
+
+.btn-primary:active {
+  background: var(--color-primary-dark);
+}
+
+.btn-secondary {
+  background: var(--color-secondary);
+  color: #fff;
+}
+
+.btn-secondary:active {
+  background: var(--color-secondary-dark);
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--color-text);
+  border: 2px solid var(--color-border);
+}
+
+.btn-link {
+  background: none;
+  color: var(--color-muted);
+  font-weight: 400;
+  text-decoration: underline;
+  align-self: center;
+}
+
+.btn[hidden] {
+  display: none;
+}
+
+/* ---------- Spieler-Ansicht ---------- */
+
+.play-header {
+  position: sticky;
+  top: 0;
+  z-index: 1000; /* über der Leaflet-Karte */
+  margin: calc(-1 * var(--space)) calc(-1 * var(--space)) 0;
+  padding: 12px var(--space);
+  background: var(--color-bg);
+}
+
+.play-header-row {
+  display: flex;
+  justify-content: space-between;
+  font-weight: 700;
+}
+
+.clock {
+  font-variant-numeric: tabular-nums; /* Ziffern gleich breit → Uhr wackelt nicht */
+}
+
+.progress-bar {
+  height: 10px;
+  margin-top: 8px;
+  background: var(--color-border);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  width: 0;
+  background: var(--color-secondary);
+  transition: width 0.4s ease;
+}
+
+.riddle {
+  padding: var(--space);
+  background: var(--color-surface);
+  border-radius: var(--radius);
+  font-size: 1.15rem;
+  box-shadow: 0 2px 0 var(--color-border);
+}
+
+.answer-form {
+  display: flex;
+  gap: 8px;
+}
+
+.answer-form input {
+  flex: 1;
+  min-width: 0;
+  min-height: 48px;
+  padding: 0 14px;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius);
+  font: inherit;
+  background: var(--color-surface);
+}
+
+.answer-form input:focus {
+  outline: none;
+  border-color: var(--color-secondary);
+}
+
+.feedback {
+  min-height: 1.5em;
+  margin: 0;
+  font-weight: 700;
+  text-align: center;
+}
+
+.feedback.is-success {
+  color: var(--color-success);
+}
+
+.feedback.is-error {
+  color: var(--color-error);
+}
+
+.hint {
+  padding: 12px var(--space);
+  background: #fff3c4;
+  border-radius: var(--radius);
+}
+
+.hint[hidden],
+.notice[hidden] {
+  display: none;
+}
+
+.map-wrap {
+  position: relative;
+}
+
+.map-wrap[hidden] {
+  display: none;
+}
+
+.map {
+  height: 40vh;
+  min-height: 220px;
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+/* Hinweis über der Karte, solange noch kein Standort da ist */
+.map-status {
+  position: absolute;
+  inset: 0;
+  z-index: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: var(--space);
+  text-align: center;
+  color: var(--color-muted);
+  background: var(--color-surface);
+  border-radius: var(--radius);
+}
+
+.map-status[hidden] {
+  display: none;
+}
+
+.notice {
+  margin: 0;
+  padding: 12px var(--space);
+  color: var(--color-muted);
+  background: var(--color-surface);
+  border-radius: var(--radius);
+}
+
+/* ---------- Geschafft ---------- */
+
+#screen-finished {
+  text-align: center;
+}
+
+.finished-title {
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+.finished-time strong {
+  font-size: 2rem;
+  display: block;
+  font-variant-numeric: tabular-nums;
+}

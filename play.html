@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Stadtjagd – Spielen</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <!-- Fehler: Link kaputt -->
+  <section id="screen-error" class="screen" hidden>
+    <h1>Hoppla!</h1>
+    <p>Dieser Link funktioniert leider nicht. Vielleicht wurde er beim Kopieren abgeschnitten?
+      Frag am besten nochmal nach dem Link oder QR-Code.</p>
+  </section>
+
+  <!-- Intro -->
+  <section id="screen-intro" class="screen" hidden>
+    <h1 id="intro-title"></h1>
+    <p id="intro-text" class="text-block"></p>
+    <button id="btn-start" class="btn btn-primary">Los geht's</button>
+  </section>
+
+  <!-- Rätsel -->
+  <section id="screen-riddle" class="screen" hidden>
+    <header class="play-header">
+      <div class="play-header-row">
+        <span id="station-label"></span>
+        <span id="clock" class="clock">00:00</span>
+      </div>
+      <div class="progress-bar"><div id="progress-fill" class="progress-fill"></div></div>
+    </header>
+
+    <p id="riddle-text" class="riddle text-block"></p>
+
+    <form id="answer-form" class="answer-form" autocomplete="off">
+      <label for="answer-input" class="visually-hidden">Lösungswort</label>
+      <input id="answer-input" type="text" placeholder="Lösungswort" autocapitalize="off" spellcheck="false" required>
+      <button id="btn-check" type="submit" class="btn btn-primary">Prüfen</button>
+    </form>
+
+    <p id="feedback" class="feedback" role="status" aria-live="polite"></p>
+
+    <button id="btn-here" class="btn btn-secondary" hidden>Ich bin da</button>
+    <button id="btn-hint" class="btn btn-ghost" hidden>Hinweis zeigen</button>
+    <p id="hint-text" class="hint text-block" hidden></p>
+    <button id="btn-skip" class="btn btn-ghost" hidden>Station überspringen</button>
+
+    <div id="map-wrap" class="map-wrap">
+      <div id="map" class="map"></div>
+      <p id="map-status" class="map-status">Standort wird gesucht …</p>
+    </div>
+    <p id="no-gps" class="notice" hidden>Ohne Standort – löse die Rätsel per Lösungswort.</p>
+
+    <button id="btn-restart" class="btn btn-link">Jagd neu starten</button>
+  </section>
+
+  <!-- Geschafft -->
+  <section id="screen-finished" class="screen" hidden>
+    <h1>Geschafft!</h1>
+    <p id="finished-title" class="finished-title"></p>
+    <p class="finished-time">Eure Zeit: <strong id="finished-time"></strong></p>
+    <p id="finished-skipped" hidden></p>
+    <p id="outro-text" class="text-block"></p>
+    <button id="btn-replay" class="btn btn-secondary">Nochmal spielen</button>
+  </section>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.5.0/lz-string.min.js"></script>
+  <script type="module" src="js/ui-play.js"></script>
+</body>
+</html>

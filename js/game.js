@@ -45,7 +45,10 @@ export function isValidProgress(hunt, progress) {
     Number.isFinite(progress.startedAt) &&
     Number.isInteger(progress.current) &&
     progress.current >= 0 &&
-    progress.current <= hunt.stations.length &&
+    // Ohne Ende muss "current" auf eine echte Station zeigen
+    (progress.finishedAt === null
+      ? progress.current < hunt.stations.length
+      : progress.current === hunt.stations.length) &&
     Number.isInteger(progress.fails) &&
     Array.isArray(progress.skipped) &&
     (progress.finishedAt === null || Number.isFinite(progress.finishedAt))
