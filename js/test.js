@@ -114,6 +114,20 @@ test("Link: kaputte oder manipulierte Daten → null", () => {
   assertEqual(Hunt.parseLinkHash("#j=" + edit), null);
 });
 
+test("toEditableHunt: ergänzt fehlende Felder, lehnt Unsinn ab", () => {
+  const raw = {
+    v: 1, id: "abc", title: "T",
+    skip: { allowed: true, afterFails: null }, // null entsteht aus NaN im JSON
+    stations: [{ lat: 1, lng: 2, riddle: "R", answers: ["A"] }],
+  };
+  const hunt = Hunt.toEditableHunt(raw);
+  assertEqual([hunt.intro, hunt.outro, hunt.skip.afterFails, hunt.stations[0].hint], ["", "", 3, ""]);
+  assertEqual(Hunt.toEditableHunt(null), null);
+  assertEqual(Hunt.toEditableHunt({ v: 1, id: "abc" }), null);
+  const complete = sampleHunt();
+  assertEqual(Hunt.toEditableHunt(complete), complete); // vollständige Jagd bleibt gleich
+});
+
 // --- game.js ---------------------------------------------------------------
 
 test("distanceMeters: 1° Breite ≈ 111,2 km, gleicher Punkt = 0", () => {

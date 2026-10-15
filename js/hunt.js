@@ -189,6 +189,28 @@ export function decodeHunt(text, mode) {
   return isValidStructure(hunt, mode) ? hunt : null;
 }
 
+// Macht aus gespeicherten Daten (Entwurf oder Bearbeiten-Link) eine Jagd,
+// mit der der Editor sicher arbeiten kann: fehlende Texte werden "",
+// eine kaputte Fehlversuch-Zahl wird 3. Gibt null zurück, wenn die Daten
+// grundsätzlich nicht passen.
+export function toEditableHunt(raw) {
+  if (!isObject(raw)) return null;
+  const skip = isObject(raw.skip) ? raw.skip : {};
+  const hunt = {
+    ...raw,
+    intro: raw.intro ?? "",
+    outro: raw.outro ?? "",
+    skip: {
+      allowed: skip.allowed === true,
+      afterFails: Number.isInteger(skip.afterFails) ? skip.afterFails : 3,
+    },
+    stations: Array.isArray(raw.stations)
+      ? raw.stations.map((s) => (isObject(s) ? { ...s, hint: s.hint ?? "" } : s))
+      : raw.stations,
+  };
+  return isValidStructure(hunt, "edit") ? hunt : null;
+}
+
 // Prüft, ob die Daten die erwartete Form haben. Ein Link kann von
 // jedem verändert werden, deshalb trauen wir dem Inhalt nicht blind.
 function isValidStructure(hunt, mode) {

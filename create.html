@@ -8,8 +8,12 @@
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-  <main class="screen">
-    <h1>Jagd erstellen</h1>
+  <main id="screen-editor" class="screen">
+    <div class="title-row">
+      <h1>Jagd erstellen</h1>
+      <button id="btn-new" class="btn btn-link">Neue Jagd</button>
+    </div>
+    <p class="draft-status">Wird automatisch auf diesem Gerät gespeichert.</p>
 
     <p class="notice">Bitte keine Stationen an gefährlichen oder privaten Orten
       (Gleise, Baustellen, Privatgrundstücke).</p>
@@ -57,6 +61,37 @@
     <button id="btn-finish" class="btn btn-primary">Jagd fertigstellen</button>
   </main>
 
+  <!-- Ergebnis: Links und QR-Code -->
+  <section id="screen-result" class="screen" hidden>
+    <h1>Fertig!</h1>
+    <p class="text-block">Schick deinen Freunden den Link oder lass sie den QR-Code scannen.</p>
+
+    <div id="qr-code" class="qr-code" role="img" aria-label="QR-Code mit dem Spiel-Link"></div>
+    <p id="qr-error" class="notice" hidden></p>
+    <p id="length-warning" class="notice" hidden>Der Link ist sehr lang. Manche Handys können den
+      QR-Code dann schlecht scannen – kürzere Rätsel-Texte helfen.</p>
+
+    <div class="field">
+      <label for="play-link">Link zum Spielen</label>
+      <input id="play-link" type="text" readonly>
+    </div>
+    <div class="button-row">
+      <button id="btn-copy-play" class="btn btn-secondary">Kopieren</button>
+      <button id="btn-share" class="btn btn-secondary" hidden>Teilen</button>
+    </div>
+
+    <div class="field edit-link-box">
+      <label for="edit-link">Link zum Bearbeiten</label>
+      <p class="field-help"><strong>Nicht weitergeben – er enthält die Lösungen!</strong>
+        Speicher ihn dir, um die Jagd später auf einem anderen Gerät zu ändern.</p>
+      <input id="edit-link" type="text" readonly>
+    </div>
+    <button id="btn-copy-edit" class="btn btn-ghost">Bearbeiten-Link kopieren</button>
+
+    <p id="copy-status" class="feedback is-success" role="status" aria-live="polite"></p>
+    <button id="btn-back" class="btn btn-link">Zurück zum Bearbeiten</button>
+  </section>
+
   <!-- Formular für eine Station (öffnet sich von unten) -->
   <dialog id="station-dialog" class="sheet">
     <form id="station-form" method="dialog">
@@ -90,6 +125,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.6/Sortable.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.5.0/lz-string.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
   <script type="module" src="js/ui-create.js"></script>
 </body>
 </html>

@@ -1,14 +1,19 @@
 // ui-create.js – Oberfläche der Ersteller-Ansicht (create.html).
 //
-// Stationen auf der Karte setzen, bearbeiten, löschen und sortieren.
+// Stationen auf der Karte setzen, bearbeiten, löschen und sortieren,
+// Entwurf speichern, am Ende Links und QR-Code erzeugen.
 // Prüfen und Datenformat kommen aus hunt.js.
 
 import * as Hunt from "./hunt.js";
+import * as Storage from "./storage.js";
 
 const $ = (id) => document.getElementById(id);
 
+// Ab dieser Länge wird ein QR-Code für viele Handy-Kameras schwierig.
+const LONG_LINK = 2000;
+
 // Zustand der Seite
-let hunt = Hunt.createHunt();
+let hunt = null;
 let showErrors = false; // Fehler erst nach dem ersten Klick auf "Fertigstellen" anzeigen
 let editing = null; // { index, lat, lng } – index null = neue Station
 
@@ -32,6 +37,7 @@ const DRAG_ICON =
 init();
 
 function init() {
+  hunt = loadInitialHunt();
   initMap();
   fillSettings();
   bindEvents();
@@ -43,25 +49,75 @@ function init() {
   renderAll();
 }
 
+// Welche Jagd beim Öffnen in den Editor kommt:
+// 1. Bearbeiten-Link in der Adresse (#e=...)  2. gespeicherter Entwurf  3. neue Jagd
+function loadInitialHunt() {
+  const draft = Hunt.toEditableHunt(Storage.load(Storage.KEYS.draft));
+  const hadHash = location.hash.length > 1;
+  const link = hadHash ? Hunt.parseLinkHash(location.hash) : null;
+
+  // Link-Daten aus der Adresszeile entfernen. Sonst würde ein Neuladen
+  // die Jagd aus dem Link wieder über den neueren Entwurf schreiben.
+  if (hadHash) history.replaceState(null, "", location.pathname + location.search);
+
+  if (link && link.mode === "edit") {
+    const linkHunt = Hunt.toEditableHunt(link.hunt);
+    const otherDraft =
+      draft && draft.id !== linkHunt.id && (draft.title.trim() !== "" || draft.stations.length > 0);
+    if (!otherDraft || confirm("Bearbeiten-Link öffnen? Dein aktueller Entwurf auf diesem Gerät wird dabei ersetzt.")) {
+      return linkHunt;
+    }
+  } else if (hadHash) {
+    alert("Dieser Link ist kein gültiger Bearbeiten-Link. Vielleicht wurde er beim Kopieren abgeschnitten?");
+  }
+
+  return draft ?? Hunt.createHunt();
+}
+
+function saveDraft() {
+  Storage.save(Storage.KEYS.draft, hunt);
+}
+
 function bindEvents() {
   $("title-input").addEventListener("input", (e) => {
     hunt.title = e.target.value;
+    saveDraft();
     renderErrors();
   });
-  $("intro-input").addEventListener("input", (e) => (hunt.intro = e.target.value));
-  $("outro-input").addEventListener("input", (e) => (hunt.outro = e.target.value));
+  $("intro-input").addEventListener("input", (e) => {
+    hunt.intro = e.target.value;
+    saveDraft();
+  });
+  $("outro-input").addEventListener("input", (e) => {
+    hunt.outro = e.target.value;
+    saveDraft();
+  });
   $("skip-allowed").addEventListener("change", (e) => {
     hunt.skip.allowed = e.target.checked;
     $("skip-fails-field").hidden = !hunt.skip.allowed;
+    saveDraft();
     renderErrors();
   });
   $("skip-fails").addEventListener("input", (e) => {
     hunt.skip.afterFails = Number(e.target.value);
+    saveDraft();
     renderErrors();
   });
 
   $("btn-here").addEventListener("click", onHereClick);
   $("btn-finish").addEventListener("click", onFinishClick);
+  $("btn-new").addEventListener("click", onNewHuntClick);
+
+  // Ergebnis-Bildschirm
+  $("btn-copy-play").addEventListener("click", () => copyLink("play-link", "Spiel-Link kopiert!"));
+  $("btn-copy-edit").addEventListener("click", () => copyLink("edit-link", "Bearbeiten-Link kopiert!"));
+  $("btn-share").addEventListener("click", onShareClick);
+  $("btn-back").addEventListener("click", () => showScreen("editor"));
+
+  // Bearbeiten-Link in den schon offenen Tab eingefügt → Seite neu laden,
+  // damit loadInitialHunt() ihn einliest. (Unser eigenes Entfernen des
+  // Hashes per history.replaceState löst dieses Ereignis nicht aus.)
+  window.addEventListener("hashchange", () => location.reload());
 
   // Formular-Blatt
   $("station-form").addEventListener("submit", onStationSave);
@@ -94,9 +150,13 @@ function initMap() {
 
   map.on("click", (e) => openSheet(null, e.latlng));
 
-  // Karte auf den eigenen Standort zentrieren, wenn erlaubt. Klappt es nicht,
-  // bleibt eben Deutschland sichtbar – kein Fehler nötig.
-  if (hunt.stations.length === 0 && "geolocation" in navigator) {
+  if (hunt.stations.length > 0) {
+    // Gespeicherte Jagd: alle Stationen ins Bild holen
+    const points = hunt.stations.map((s) => [s.lat, s.lng]);
+    map.fitBounds(points, { padding: [40, 40], maxZoom: 17 });
+  } else if ("geolocation" in navigator) {
+    // Neue Jagd: auf den eigenen Standort zentrieren, wenn erlaubt. Klappt es
+    // nicht, bleibt eben Deutschland sichtbar – kein Fehler nötig.
     navigator.geolocation.getCurrentPosition(
       (pos) => map.setView([pos.coords.latitude, pos.coords.longitude], 16),
       () => {},
@@ -120,6 +180,7 @@ function renderMap() {
       const pos = marker.getLatLng();
       station.lat = Hunt.roundCoord(pos.lat);
       station.lng = Hunt.roundCoord(pos.lng);
+      saveDraft();
       renderMap(); // Linie neu zeichnen
     });
     return marker;
@@ -366,8 +427,8 @@ function cleanUpSheet() {
 // ---------------------------------------------------------------------------
 
 function renderErrors() {
-  if (!showErrors) return;
-  const errors = Hunt.validateHunt(hunt);
+  // Vor dem ersten "Fertigstellen" (oder nach "Neue Jagd") keine Fehler zeigen
+  const errors = showErrors ? Hunt.validateHunt(hunt) : [];
 
   const titleError = errors.find((e) => e.field === "title");
   $("title-error").textContent = titleError ? titleError.message : "";
@@ -382,7 +443,7 @@ function renderErrors() {
   if (errors.length === 0) setFinishStatus("", "");
 }
 
-function onFinishClick() {
+async function onFinishClick() {
   showErrors = true;
   renderAll();
 
@@ -392,8 +453,7 @@ function onFinishClick() {
     setFinishStatus(noStations ? noStations.message : "Bitte prüfe die rot markierten Stellen.", "error");
     return;
   }
-  // Link und QR-Code folgen in Schritt 4.
-  setFinishStatus("Alles bereit! Link und QR-Code kommen im nächsten Schritt.", "success");
+  await showResult();
 }
 
 function setFinishStatus(text, type) {
@@ -402,8 +462,103 @@ function setFinishStatus(text, type) {
   el.className = "feedback" + (type ? " is-" + type : "");
 }
 
+function onNewHuntClick() {
+  const message =
+    "Neue Jagd beginnen? Der aktuelle Entwurf wird gelöscht.\n" +
+    "Tipp: Kopier dir vorher den Bearbeiten-Link (über \"Jagd fertigstellen\").";
+  if (!confirm(message)) return;
+
+  hunt = Hunt.createHunt();
+  showErrors = false;
+  fillSettings();
+  $("location-status").textContent = "";
+  renderAll(); // speichert auch gleich den leeren Entwurf
+  window.scrollTo(0, 0);
+}
+
 function renderAll() {
   renderMap();
   renderList();
   renderErrors();
+  saveDraft();
+}
+
+// ---------------------------------------------------------------------------
+// Ergebnis: Links und QR-Code
+// ---------------------------------------------------------------------------
+
+function showScreen(name) {
+  $("screen-editor").hidden = name !== "editor";
+  $("screen-result").hidden = name !== "result";
+  // Leaflet muss nachmessen, wenn die Karte wieder sichtbar wird
+  if (name === "editor") map.invalidateSize();
+  window.scrollTo(0, 0);
+}
+
+async function showResult() {
+  // Ordner, in dem create.html liegt – dort liegt auch play.html
+  const baseUrl = new URL(".", location.href).href;
+  const playHunt = await Hunt.toPlayHunt(hunt);
+  const playLink = Hunt.buildPlayLink(baseUrl, playHunt);
+  const editLink = Hunt.buildEditLink(baseUrl, hunt);
+
+  $("play-link").value = playLink;
+  $("edit-link").value = editLink;
+  $("length-warning").hidden = playLink.length <= LONG_LINK;
+  $("btn-share").hidden = !navigator.share;
+  $("copy-status").textContent = "";
+  renderQrCode(playLink);
+  showScreen("result");
+}
+
+function renderQrCode(text) {
+  const box = $("qr-code");
+  box.replaceChildren();
+  $("qr-error").hidden = true;
+
+  // Erst mittlere Fehlerkorrektur ("M") versuchen. Ist der Link dafür zu lang,
+  // geht "L" – passt mehr hinein, ist aber etwas empfindlicher.
+  for (const level of ["M", "L"]) {
+    try {
+      const qr = qrcode(0, level); // 0 = Größe automatisch wählen
+      qr.addData(text);
+      qr.make();
+      // Die Bibliothek liefert fertiges SVG (nur Kästchen, keine Nutzereingabe als HTML)
+      box.innerHTML = qr.createSvgTag({ cellSize: 4, margin: 2, scalable: true });
+      return;
+    } catch {
+      // zu lang für diese Stufe – nächste versuchen
+    }
+  }
+  $("qr-error").textContent = "Der Link ist zu lang für einen QR-Code. Teile ihn stattdessen per Kopieren.";
+  $("qr-error").hidden = false;
+}
+
+async function copyLink(inputId, message) {
+  const input = $(inputId);
+  const status = $("copy-status");
+  try {
+    await navigator.clipboard.writeText(input.value);
+    status.textContent = message;
+  } catch {
+    // Moderne Zwischenablage nicht erlaubt → älterer Weg: Text markieren und kopieren.
+    // Klappt auch das nicht, bleibt der Text markiert und man kopiert ihn selbst.
+    input.select();
+    const copied = document.execCommand("copy");
+    status.textContent = copied
+      ? message
+      : "Kopieren hat nicht geklappt – der Link ist markiert, kopier ihn bitte selbst.";
+  }
+}
+
+async function onShareClick() {
+  try {
+    await navigator.share({
+      title: hunt.title,
+      text: "Spiel meine Schnitzeljagd: " + hunt.title,
+      url: $("play-link").value,
+    });
+  } catch {
+    // Teilen abgebrochen – nichts zu tun
+  }
 }

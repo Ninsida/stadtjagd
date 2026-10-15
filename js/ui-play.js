@@ -7,7 +7,6 @@
 import * as Hunt from "./hunt.js";
 import * as Game from "./game.js";
 import * as Storage from "./storage.js";
-import { DEMO_HUNT } from "./demo-hunt.js";
 
 const $ = (id) => document.getElementById(id);
 
@@ -31,7 +30,7 @@ let accuracyCircle = null;
 init();
 
 async function init() {
-  hunt = await loadHunt();
+  hunt = loadHunt();
   if (!hunt || hunt.stations.length === 0) {
     showScreen("error");
     return;
@@ -58,13 +57,15 @@ async function init() {
   }
 }
 
-// Jagd aus dem Link lesen. Ohne Link: Demo-Jagd (vorübergehend).
-async function loadHunt() {
-  if (location.hash) {
-    const parsed = Hunt.parseLinkHash(location.hash);
-    return parsed && parsed.mode === "play" ? parsed.hunt : null;
+// Jagd aus dem Link lesen (#j=...). Ohne gültigen Link: null.
+function loadHunt() {
+  if (location.hash.length <= 1) {
+    $("error-text").textContent =
+      "Hier fehlt noch die Jagd. Öffne den Link oder scanne den QR-Code, den du bekommen hast.";
+    return null;
   }
-  return Hunt.toPlayHunt(DEMO_HUNT);
+  const parsed = Hunt.parseLinkHash(location.hash);
+  return parsed && parsed.mode === "play" ? parsed.hunt : null;
 }
 
 function bindEvents() {

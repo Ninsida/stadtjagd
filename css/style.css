@@ -556,3 +556,66 @@ h2 {
     border-radius: var(--radius);
   }
 }
+
+/* ---------- Entwurf und Ergebnis ---------- */
+
+.title-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.title-row h1 {
+  margin: 0;
+}
+
+.title-row .btn-link {
+  min-height: auto;
+  padding: 4px 0;
+}
+
+.draft-status {
+  margin: -8px 0 0;
+  color: var(--color-muted);
+  font-size: 0.85rem;
+}
+
+.qr-code {
+  align-self: center;
+  width: min(100%, 280px);
+  padding: 12px;
+  background: #fff; /* QR-Codes brauchen hellen Hintergrund zum Scannen */
+  border-radius: var(--radius);
+}
+
+.qr-code:empty {
+  display: none;
+}
+
+.qr-code svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.button-row {
+  display: flex;
+  gap: 8px;
+}
+
+.button-row .btn {
+  flex: 1;
+}
+
+.edit-link-box {
+  margin-top: 12px;
+  padding: var(--space);
+  background: #fff3c4;
+  border-radius: var(--radius);
+}
+
+.field input[readonly] {
+  color: var(--color-muted);
+  font-size: 0.9rem;
+}
