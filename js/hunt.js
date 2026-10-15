@@ -49,6 +49,15 @@ export function createStation(lat, lng) {
   };
 }
 
+// Verschiebt eine Station in der Reihenfolge (z. B. nach Drag & Drop).
+// Gibt eine NEUE Liste zurück, die alte bleibt unverändert.
+export function moveStation(stations, fromIndex, toIndex) {
+  const result = [...stations];
+  const [moved] = result.splice(fromIndex, 1);
+  result.splice(toIndex, 0, moved);
+  return result;
+}
+
 // 5 Nachkommastellen ≈ 1 m Genauigkeit – reicht und hält den Link kurz.
 export function roundCoord(value) {
   return Math.round(value * 1e5) / 1e5;

@@ -47,6 +47,13 @@ test("roundCoord: 5 Nachkommastellen", () => {
   assertEqual(Hunt.roundCoord(52.5200123456), 52.52001);
 });
 
+test("moveStation: verschiebt, ohne das Original zu ändern", () => {
+  const list = ["a", "b", "c", "d"];
+  assertEqual(Hunt.moveStation(list, 0, 2), ["b", "c", "a", "d"]);
+  assertEqual(Hunt.moveStation(list, 3, 0), ["d", "a", "b", "c"]);
+  assertEqual(list, ["a", "b", "c", "d"]);
+});
+
 test("hashAnswer: gleich trotz Schreibweise, verschieden je Jagd", async () => {
   const a = await Hunt.hashAnswer("abc", "Kölner Dom");
   const b = await Hunt.hashAnswer("abc", "  koelner dom ");

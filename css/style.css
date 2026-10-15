@@ -268,3 +268,291 @@ h1 {
   display: block;
   font-variant-numeric: tabular-nums;
 }
+
+/* ---------- Ersteller-Ansicht ---------- */
+
+h2 {
+  margin: 12px 0 0;
+  font-size: 1.3rem;
+}
+
+.count {
+  color: var(--color-muted);
+  font-weight: 400;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+.field[hidden] {
+  display: none;
+}
+
+.field label,
+.field legend {
+  font-weight: 700;
+  padding: 0;
+}
+
+.field-inline {
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+}
+
+.field-inline input {
+  width: 22px;
+  height: 22px;
+  accent-color: var(--color-secondary);
+}
+
+.optional,
+.field-help {
+  color: var(--color-muted);
+  font-weight: 400;
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+.field input[type="text"],
+.field input[type="number"],
+.field textarea {
+  width: 100%;
+  min-height: 48px;
+  padding: 10px 14px;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius);
+  font: inherit;
+  background: var(--color-surface);
+  color: inherit;
+}
+
+.field textarea {
+  resize: vertical;
+}
+
+.field input:focus,
+.field textarea:focus {
+  outline: none;
+  border-color: var(--color-secondary);
+}
+
+.field .is-invalid,
+.field input.is-invalid {
+  border-color: var(--color-error);
+}
+
+.field-error {
+  margin: 0;
+  color: var(--color-error);
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.field-error[hidden] {
+  display: none;
+}
+
+.map-create {
+  height: 45vh;
+}
+
+.map-help {
+  margin: 0;
+  color: var(--color-muted);
+  font-size: 0.9rem;
+}
+
+/* Nummerierte Marker auf der Karte */
+.station-marker {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 3px solid #fff;
+  border-radius: 50%;
+  background: var(--color-primary);
+  color: #fff;
+  font-weight: 700;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+.station-marker.is-new {
+  background: var(--color-muted);
+}
+
+/* Stationsliste */
+.station-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.station-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px;
+  background: var(--color-surface);
+  border: 2px solid transparent;
+  border-radius: var(--radius);
+  box-shadow: 0 2px 0 var(--color-border);
+}
+
+.station-item.is-invalid {
+  border-color: var(--color-error);
+}
+
+.station-item.sortable-ghost {
+  opacity: 0.4;
+}
+
+.drag-handle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 48px;
+  flex-shrink: 0;
+  color: var(--color-muted);
+  cursor: grab;
+  touch-action: none; /* Wischen am Griff zieht die Station statt die Seite */
+}
+
+.station-number {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--color-primary);
+  color: #fff;
+  font-weight: 700;
+}
+
+.station-body {
+  flex: 1;
+  min-width: 0;
+  padding: 4px 0;
+  border: none;
+  background: none;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.station-riddle {
+  display: block;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis; /* lange Rätsel mit "…" abschneiden */
+}
+
+.station-riddle.is-empty {
+  color: var(--color-muted);
+  font-style: italic;
+}
+
+.station-meta {
+  display: block;
+  color: var(--color-muted);
+  font-size: 0.85rem;
+}
+
+.station-errors {
+  display: block;
+  color: var(--color-error);
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+/* Formular-Blatt für eine Station */
+.sheet {
+  width: 100%;
+  max-width: 560px;
+  max-height: 90vh;
+  margin: auto auto 0; /* unten am Bildschirm */
+  padding: var(--space);
+  border: none;
+  border-radius: var(--radius) var(--radius) 0 0;
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+
+.sheet::backdrop {
+  background: rgba(43, 34, 53, 0.5);
+}
+
+.sheet form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.sheet h2 {
+  margin: 0;
+}
+
+.answer-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.answer-row {
+  display: flex;
+  gap: 8px;
+}
+
+.answer-row input {
+  flex: 1;
+}
+
+.btn-icon {
+  width: 48px;
+  padding: 0;
+  flex-shrink: 0;
+  background: transparent;
+  color: var(--color-muted);
+  border: 2px solid var(--color-border);
+}
+
+.btn-small {
+  min-height: 40px;
+  padding: 8px 14px;
+  align-self: flex-start;
+}
+
+.sheet-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.sheet-actions .btn {
+  flex: 1;
+}
+
+.btn-danger {
+  color: var(--color-error);
+}
+
+/* Ab Tablet-Breite: Blatt mittig statt unten */
+@media (min-width: 600px) {
+  .sheet {
+    margin: auto;
+    border-radius: var(--radius);
+  }
+}

@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Stadtjagd – Jagd erstellen</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <main class="screen">
+    <h1>Jagd erstellen</h1>
+
+    <p class="notice">Bitte keine Stationen an gefährlichen oder privaten Orten
+      (Gleise, Baustellen, Privatgrundstücke).</p>
+
+    <div class="field">
+      <label for="title-input">Titel der Jagd</label>
+      <input id="title-input" type="text" maxlength="80" placeholder="z. B. Lauras Geburtstagsjagd">
+      <p id="title-error" class="field-error" hidden></p>
+    </div>
+
+    <!-- Karte -->
+    <div class="map-wrap">
+      <div id="map" class="map map-create"></div>
+    </div>
+    <p class="map-help">Tippe auf die Karte, um eine Station zu setzen. Marker kannst du verschieben.</p>
+    <button id="btn-here" class="btn btn-secondary">Station an meinem Standort</button>
+    <p id="location-status" class="feedback is-error" role="status" aria-live="polite"></p>
+
+    <!-- Stationsliste -->
+    <h2>Stationen <span id="station-count" class="count"></span></h2>
+    <p id="stations-empty" class="notice">Noch keine Stationen. Tippe auf die Karte, um loszulegen.</p>
+    <ol id="station-list" class="station-list"></ol>
+
+    <!-- Einstellungen -->
+    <h2>Einstellungen</h2>
+    <div class="field">
+      <label for="intro-input">Begrüßung <span class="optional">(optional)</span></label>
+      <textarea id="intro-input" rows="3" maxlength="500" placeholder="Wird vor dem ersten Rätsel angezeigt"></textarea>
+    </div>
+    <div class="field">
+      <label for="outro-input">Abschluss-Text <span class="optional">(optional)</span></label>
+      <textarea id="outro-input" rows="3" maxlength="500" placeholder="z. B. Treffpunkt zum Feiern"></textarea>
+    </div>
+    <div class="field field-inline">
+      <input id="skip-allowed" type="checkbox">
+      <label for="skip-allowed">Überspringen erlauben</label>
+    </div>
+    <div id="skip-fails-field" class="field" hidden>
+      <label for="skip-fails">Ab wie vielen Fehlversuchen?</label>
+      <input id="skip-fails" type="number" min="1" max="10" step="1" inputmode="numeric">
+      <p id="skip-error" class="field-error" hidden></p>
+    </div>
+
+    <p id="finish-status" class="feedback" role="status" aria-live="polite"></p>
+    <button id="btn-finish" class="btn btn-primary">Jagd fertigstellen</button>
+  </main>
+
+  <!-- Formular für eine Station (öffnet sich von unten) -->
+  <dialog id="station-dialog" class="sheet">
+    <form id="station-form" method="dialog">
+      <h2 id="sheet-title">Station</h2>
+
+      <div class="field">
+        <label for="riddle-input">Rätsel</label>
+        <textarea id="riddle-input" rows="4" maxlength="1000" placeholder="Was sollen die Spieler herausfinden?"></textarea>
+      </div>
+
+      <fieldset class="field">
+        <legend>Lösungswörter</legend>
+        <p class="field-help">Groß/klein und Umlaute sind egal. Mehrere Wörter = jedes zählt als richtig.</p>
+        <div id="answer-rows" class="answer-rows"></div>
+        <button id="btn-add-answer" type="button" class="btn btn-ghost btn-small">+ weiteres Wort</button>
+      </fieldset>
+
+      <div class="field">
+        <label for="hint-input">Hinweis <span class="optional">(optional)</span></label>
+        <input id="hint-input" type="text" maxlength="300" placeholder="Hilft nach dem ersten Fehlversuch">
+      </div>
+
+      <div class="sheet-actions">
+        <button id="btn-save-station" type="submit" class="btn btn-primary">Speichern</button>
+        <button id="btn-cancel-station" type="button" class="btn btn-ghost">Abbrechen</button>
+      </div>
+      <button id="btn-delete-station" type="button" class="btn btn-link btn-danger">Station löschen</button>
+    </form>
+  </dialog>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.6/Sortable.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.5.0/lz-string.min.js"></script>
+  <script type="module" src="js/ui-create.js"></script>
+</body>
+</html>
