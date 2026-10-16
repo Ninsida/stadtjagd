@@ -5,6 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Stadtjagd – Jagd erstellen</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#ff5a5f">
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-title" content="Stadtjagd">
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -48,6 +53,17 @@
       <span id="btn-here-label">Station an meinem Standort</span>
     </button>
     <p id="location-status" class="feedback is-error" role="status" aria-live="polite"></p>
+    <div class="button-row">
+      <button id="btn-places" type="button" class="btn btn-ghost" aria-pressed="false">
+        <svg class="icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
+        <span id="btn-places-label">Orte vorschlagen</span>
+      </button>
+      <button id="btn-auto" type="button" class="btn btn-ghost">
+        <svg class="icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l1.9 4.6L18.5 9l-4.6 1.9L12 15.5l-1.9-4.6L5.5 9l4.6-1.4z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8z"/></svg>
+        Automatisch erstellen
+      </button>
+    </div>
+    <p id="places-status" class="feedback" role="status" aria-live="polite"></p>
     </div>
 
     <div class="editor-side-col">
@@ -124,6 +140,14 @@
     <h1>Fertig!</h1>
     <p id="result-intro" class="text-block">Schick deinen Freunden den Link oder lass sie den QR-Code scannen.</p>
 
+    <button id="btn-print" type="button" class="btn btn-ghost">
+      <svg class="icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9V3h12v6M6 18H4v-7h16v7h-2M8 14h8v7H8z"/></svg>
+      QR-Codes drucken
+    </button>
+
+    <!-- Nur auf dem Ausdruck sichtbar -->
+    <p id="print-title" class="print-only print-title"></p>
+
     <!-- Eine Karte pro Team (oder eine ohne Teams), gefüllt von ui-create.js -->
     <div id="result-cards" class="result-cards"></div>
     <p class="field-help">„Probelauf“: Spiel die Jagd selbst einmal durch – ohne dass Zeit oder Fortschritt gespeichert werden.</p>
@@ -132,6 +156,7 @@
       <article class="result-card">
         <h2 class="team-badge team-badge-big result-team" hidden></h2>
         <div class="qr-code" role="img" aria-label="QR-Code mit dem Spiel-Link"></div>
+        <p class="print-only print-hint">Mit der Handy-Kamera scannen und loslegen!</p>
         <p class="notice qr-error" hidden></p>
         <p class="notice length-warning" hidden>Der Link ist sehr lang. Manche Handys können den
           QR-Code dann schlecht scannen – kürzere Rätsel-Texte helfen.</p>
@@ -193,6 +218,50 @@
         <button id="btn-cancel-station" type="button" class="btn btn-ghost">Abbrechen</button>
       </div>
       <button id="btn-delete-station" type="button" class="btn btn-link btn-danger">Station löschen</button>
+    </form>
+  </dialog>
+
+  <!-- Jagd automatisch erstellen -->
+  <dialog id="auto-dialog" class="sheet">
+    <form id="auto-form" method="dialog">
+      <h2>Jagd automatisch erstellen</h2>
+      <p class="field-help">Die App sucht Sehenswürdigkeiten in der Nähe und baut daraus eine fertige Jagd mit Rätseln.
+        Danach kannst du alles anpassen.</p>
+
+      <fieldset class="field">
+        <legend>Startpunkt</legend>
+        <label class="radio-row"><input type="radio" name="auto-start" value="here" checked> Mein Standort</label>
+        <label class="radio-row"><input type="radio" name="auto-start" value="map"> Mitte der Karte</label>
+      </fieldset>
+
+      <div class="field">
+        <label for="auto-count">Anzahl Stationen</label>
+        <select id="auto-count">
+          <option value="3">3</option>
+          <option value="4">4</option>
+          <option value="5" selected>5</option>
+          <option value="6">6</option>
+          <option value="8">8</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="auto-distance">Strecke</label>
+        <select id="auto-distance">
+          <option value="short">kurz (ca. 500 m Umkreis)</option>
+          <option value="medium" selected>mittel (ca. 1 km Umkreis)</option>
+          <option value="long">lang (ca. 2 km Umkreis)</option>
+        </select>
+      </div>
+
+      <p class="privacy-box">Datenschutz: Dafür wird nur der Startpunkt an Wikipedia geschickt, um Orte in der Nähe zu finden.
+        Sonst nichts.</p>
+      <p id="auto-status" class="feedback" role="status" aria-live="polite"></p>
+
+      <div class="sheet-actions">
+        <button id="btn-auto-go" type="submit" class="btn btn-primary">Los, erstellen!</button>
+        <button id="btn-auto-cancel" type="button" class="btn btn-ghost">Abbrechen</button>
+      </div>
     </form>
   </dialog>
 

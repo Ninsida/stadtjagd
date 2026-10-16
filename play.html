@@ -5,6 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Stadtjagd – Spielen</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#ff5a5f">
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-title" content="Stadtjagd">
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -90,6 +95,8 @@
       <div id="map" class="map"></div>
       <p id="map-status" class="map-status">Standort wird gesucht …</p>
     </div>
+    <!-- Nur im Probelauf: wo liegt die Station, wie weit bin ich weg? -->
+    <p id="probe-info" class="probe-info" hidden></p>
     <p id="no-gps" class="notice" hidden>Ohne Standort – löse die Rätsel per Lösungswort.</p>
 
     <button id="btn-restart" class="btn btn-link">Jagd neu starten</button>

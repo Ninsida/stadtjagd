@@ -1190,3 +1190,156 @@ a.brand {
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   }
 }
+
+.probe-info {
+  margin: 0;
+  padding: 10px var(--space);
+  background: var(--color-accent-soft);
+  border: 2px dashed var(--color-accent);
+  border-radius: var(--radius);
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.probe-info[hidden] {
+  display: none;
+}
+
+/* ---------- Drucken ---------- */
+
+.print-only {
+  display: none;
+}
+
+/* Beim Drucken nur die QR-Karten zeigen: groß, mit Teamname, ohne Buttons */
+@media print {
+  body {
+    background: #fff;
+  }
+
+  body > *:not(#screen-result),
+  #screen-result > *:not(.result-cards):not(.print-title),
+  .result-card .play-link,
+  .result-card .button-row,
+  .result-card .btn-probe,
+  .result-card .length-warning,
+  .load-warning {
+    display: none !important;
+  }
+
+  .print-only {
+    display: block;
+  }
+
+  .print-title {
+    margin: 0 0 12mm;
+    font-size: 20pt;
+    font-weight: 800;
+    text-align: center;
+  }
+
+  #screen-result {
+    max-width: none;
+    padding: 0;
+  }
+
+  /* Zwei Karten nebeneinander, keine Karte über den Seitenrand zerschneiden */
+  #screen-result .result-cards {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10mm;
+  }
+
+  .result-card {
+    break-inside: avoid;
+    align-items: center;
+    padding: 8mm;
+    box-shadow: none !important;
+    border-width: 2mm;
+    border-style: dashed; /* Schnittlinie */
+    print-color-adjust: exact; /* Teamfarben mitdrucken */
+    -webkit-print-color-adjust: exact;
+  }
+
+  .result-card .qr-code {
+    width: 60mm;
+  }
+
+  .print-hint {
+    margin: 0;
+    font-size: 11pt;
+    text-align: center;
+  }
+}
+
+/* ---------- Orte und automatische Jagd ---------- */
+
+.btn[aria-pressed="true"] {
+  --btn-shadow: var(--color-secondary-dark);
+  background: var(--color-secondary);
+  border-color: var(--color-secondary);
+  color: #fff;
+}
+
+.field select {
+  width: 100%;
+  min-height: 48px;
+  padding: 10px 14px;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius);
+  font: inherit;
+  background: var(--color-surface);
+  color: inherit;
+}
+
+.field .radio-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 40px;
+  font-weight: 600;
+}
+
+.radio-row input {
+  width: 20px;
+  height: 20px;
+  accent-color: var(--color-secondary);
+}
+
+.privacy-box {
+  margin: 0;
+  padding: 10px 14px;
+  background: var(--color-surface);
+  border-left: 4px solid var(--color-secondary);
+  border-radius: 8px;
+  font-size: 0.85rem;
+  color: var(--color-muted);
+}
+
+/* Vorschlags-Punkte auf der Karte */
+.place-marker {
+  width: 18px;
+  height: 18px;
+  border: 3px solid #fff;
+  border-radius: 50%;
+  background: #8338ec;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+}
+
+.place-popup {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 180px;
+  font-family: var(--font);
+}
+
+.place-popup strong {
+  font-size: 1rem;
+}
+
+.place-popup .btn {
+  min-height: 40px;
+  padding: 8px 12px;
+  font-size: 0.9rem;
+}

@@ -6,6 +6,8 @@
 
 import * as Hunt from "./hunt.js";
 import * as Storage from "./storage.js";
+import * as Places from "./places.js";
+import "./pwa.js"; // als App installierbar, lädt auch bei schlechtem Netz
 
 const $ = (id) => document.getElementById(id);
 
@@ -26,6 +28,7 @@ let map = null;
 let stationMarkers = [];
 let routeLines = []; // gestrichelte Linien: eine pro Team (oder eine ohne Teams)
 let newMarker = null; // grauer Marker für eine Station, die gerade angelegt wird
+let placeMarkers = []; // lila Punkte: vorgeschlagene Orte aus Wikipedia
 
 const GERMANY_CENTER = [51.1657, 10.4515];
 const DRAG_ICON =
@@ -51,6 +54,12 @@ function init() {
     onEnd: onSortEnd,
   });
   renderAll();
+
+  // Von der Startseite "Überrasch mich" → Dialog gleich öffnen
+  if (new URLSearchParams(location.search).has("auto")) {
+    history.replaceState(null, "", location.pathname);
+    openAutoDialog();
+  }
 }
 
 // Welche Jagd beim Öffnen in den Editor kommt:
@@ -137,12 +146,17 @@ function bindEvents() {
   });
 
   $("btn-here").addEventListener("click", onHereClick);
+  $("btn-places").addEventListener("click", onPlacesToggle);
+  $("btn-auto").addEventListener("click", openAutoDialog);
+  $("auto-form").addEventListener("submit", onAutoSubmit);
+  $("btn-auto-cancel").addEventListener("click", () => $("auto-dialog").close());
   $("btn-finish").addEventListener("click", onFinishClick);
   $("btn-new").addEventListener("click", onNewHuntClick);
 
   // Ergebnis-Bildschirm (Spiel-Links bekommen ihre Buttons pro Karte in showResult)
   $("btn-copy-edit").addEventListener("click", () => copyLink($("edit-link"), "Bearbeiten-Link kopiert!"));
   $("btn-back").addEventListener("click", () => showScreen("editor"));
+  $("btn-print").addEventListener("click", () => window.print()); // Druckansicht regelt das CSS (@media print)
 
   // Bearbeiten-Link in den schon offenen Tab eingefügt → Seite neu laden,
   // damit loadInitialHunt() ihn einliest. (Unser eigenes Entfernen des
@@ -423,10 +437,11 @@ function renderList() {
   $("stations-empty").hidden = count > 0;
 }
 
-// z. B. "2 Lösungswörter · mit Hinweis"
+// z. B. "Lösung: Fischbrunnen (+1) · mit Hinweis" – die Liste sieht nur der Ersteller
 function describeStation(station) {
-  const n = station.answers.filter((a) => a.trim() !== "").length;
-  const parts = [n === 1 ? "1 Lösungswort" : `${n} Lösungswörter`];
+  const answers = station.answers.filter((a) => a.trim() !== "");
+  const more = answers.length > 1 ? ` (+${answers.length - 1})` : "";
+  const parts = [answers.length ? `Lösung: ${answers[0]}${more}` : "noch keine Lösung"];
   if (station.hint.trim()) parts.push("mit Hinweis");
   if (station.goal) parts.unshift("Ziel");
   else if (Hunt.hasTeams(hunt) && station.teams !== null) {
@@ -447,13 +462,14 @@ function onSortEnd(event) {
 // ---------------------------------------------------------------------------
 
 // index = Nummer der Station oder null für eine neue (dann mit latLng).
-function openSheet(index, latLng) {
+// prefill = optionale Vorbelegung für eine neue Station (z. B. aus einem Orts-Vorschlag).
+function openSheet(index, latLng, prefill = null) {
   // Schon offen? Dann nichts tun – auf Touch-Geräten kommt ein Tippen
   // manchmal doppelt an.
   if ($("station-dialog").open) return;
 
   const isNew = index === null;
-  const station = isNew ? null : hunt.stations[index];
+  const station = isNew ? prefill : hunt.stations[index];
 
   editing = isNew
     ? { index: null, lat: Hunt.roundCoord(latLng.lat), lng: Hunt.roundCoord(latLng.lng) }
@@ -591,6 +607,178 @@ function cleanUpSheet() {
 }
 
 // ---------------------------------------------------------------------------
+// Orts-Vorschläge und automatische Jagd (Daten aus Wikipedia, siehe places.js)
+// ---------------------------------------------------------------------------
+
+const CONSENT_KEY = "placesConsent";
+
+// Einmal fragen, ob die Kartenposition an Wikipedia gehen darf.
+function askPlacesConsent() {
+  if (Storage.load(CONSENT_KEY)) return true;
+  const ok = confirm(
+    "Für Vorschläge wird die Position der Karte an Wikipedia geschickt, " +
+      "um Sehenswürdigkeiten in der Nähe zu finden. Sonst nichts. Einverstanden?"
+  );
+  if (ok) Storage.save(CONSENT_KEY, true);
+  return ok;
+}
+
+function setPlacesStatus(text, type = "") {
+  $("places-status").textContent = text;
+  $("places-status").className = "feedback" + (type ? " is-" + type : "");
+}
+
+async function onPlacesToggle() {
+  const button = $("btn-places");
+  if (placeMarkers.length > 0) {
+    clearPlaceMarkers();
+    setPlacesStatus("");
+    return;
+  }
+  if (!askPlacesConsent()) return;
+
+  // Umkreis = sichtbarer Kartenausschnitt (Mitte bis Ecke), höchstens 3 km
+  const center = map.getCenter();
+  const radius = Math.min(3000, center.distanceTo(map.getBounds().getNorthEast()));
+  if (map.getZoom() < 13) {
+    setPlacesStatus("Zoom etwas näher heran – dann finde ich Orte in diesem Ausschnitt.", "error");
+    return;
+  }
+
+  button.disabled = true;
+  $("btn-places-label").textContent = "Suche Orte …";
+  try {
+    const places = await Places.fetchPlaces(center.lat, center.lng, radius);
+    showPlaceMarkers(places);
+    setPlacesStatus(
+      places.length
+        ? `${placeMarkers.length} Orte gefunden – tippe einen lila Punkt an, um ihn als Station zu übernehmen.`
+        : "Hier habe ich keine passenden Sehenswürdigkeiten gefunden.",
+      places.length ? "success" : "error"
+    );
+  } catch (err) {
+    setPlacesStatus(err.message, "error");
+  } finally {
+    button.disabled = false;
+    $("btn-places-label").textContent = placeMarkers.length ? "Vorschläge ausblenden" : "Orte vorschlagen";
+    button.setAttribute("aria-pressed", String(placeMarkers.length > 0));
+  }
+}
+
+function showPlaceMarkers(places) {
+  clearPlaceMarkers();
+  // Orte, an denen schon eine Station steht, nicht nochmal vorschlagen
+  const fresh = places.filter((p) => !hunt.stations.some((s) => map.distance([s.lat, s.lng], [p.lat, p.lng]) < 25));
+  placeMarkers = fresh.map((place) => {
+    const marker = L.marker([place.lat, place.lng], {
+      icon: L.divIcon({ className: "", html: '<div class="place-marker"></div>', iconSize: [18, 18], iconAnchor: [9, 9] }),
+      title: place.name,
+    }).addTo(map);
+    marker.bindPopup(() => placePopup(place, marker));
+    return marker;
+  });
+}
+
+function clearPlaceMarkers() {
+  placeMarkers.forEach((m) => m.remove());
+  placeMarkers = [];
+  $("btn-places-label").textContent = "Orte vorschlagen";
+  $("btn-places").setAttribute("aria-pressed", "false");
+}
+
+// Inhalt der Sprechblase: Name, Art, Button. Mit DOM-Elementen statt HTML-Text,
+// weil der Name von außen (Wikipedia) kommt.
+function placePopup(place, marker) {
+  const box = document.createElement("div");
+  box.className = "place-popup";
+  const name = document.createElement("strong");
+  name.textContent = place.name;
+  const kind = document.createElement("span");
+  kind.textContent = Places.PLACE_KINDS[place.kind].label;
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = "btn btn-primary";
+  button.textContent = "Als Station übernehmen";
+  button.addEventListener("click", () => {
+    map.closePopup();
+    // Wegbeschreibung von der letzten normalen Station aus – das Ziel kommt ja immer zuletzt
+    const last = hunt.stations.filter((st) => !st.goal).at(-1) ?? null;
+    marker.remove();
+    placeMarkers = placeMarkers.filter((m) => m !== marker);
+    openSheet(null, L.latLng(place.lat, place.lng), Places.stationFromPlace(place, last));
+  });
+  box.append(name, kind, button);
+  return box;
+}
+
+function openAutoDialog() {
+  $("auto-status").textContent = "";
+  $("btn-auto-go").disabled = false;
+  $("auto-dialog").showModal();
+}
+
+async function onAutoSubmit(event) {
+  event.preventDefault();
+  const status = $("auto-status");
+  const setStatus = (text, type = "") => {
+    status.textContent = text;
+    status.className = "feedback" + (type ? " is-" + type : "");
+  };
+
+  const hasContent = hunt.title.trim() !== "" || hunt.stations.length > 0;
+  if (hasContent && !confirm("Deine aktuelle Jagd wird dabei ersetzt. Weiter?")) return;
+
+  const count = Number($("auto-count").value);
+  const radius = Places.DISTANCES[$("auto-distance").value].radius;
+  const useHere = document.querySelector('input[name="auto-start"]:checked').value === "here";
+
+  $("btn-auto-go").disabled = true;
+  try {
+    setStatus(useHere ? "Suche deinen Standort …" : "Suche Orte …");
+    const start = useHere ? await currentPosition() : { lat: map.getCenter().lat, lng: map.getCenter().lng };
+    setStatus("Suche Sehenswürdigkeiten …");
+    Storage.save(CONSENT_KEY, true); // Klick auf "Los" = einverstanden (Text steht im Dialog)
+    const places = await Places.fetchPlaces(start.lat, start.lng, radius);
+    const newHunt = Places.buildAutoHunt(places, start, count);
+
+    if (newHunt.stations.length < 2) {
+      setStatus("Hier gibt es zu wenige Sehenswürdigkeiten. Probier eine längere Strecke oder einen anderen Startpunkt.", "error");
+      return;
+    }
+
+    hunt = newHunt;
+    showErrors = false;
+    clearPlaceMarkers();
+    fillSettings();
+    renderAll();
+    map.fitBounds([[start.lat, start.lng], ...hunt.stations.map((s) => [s.lat, s.lng])], { padding: [40, 40], maxZoom: 17 });
+    $("auto-dialog").close();
+    const fewer = hunt.stations.length < count ? ` (mehr passende Orte gab es hier nicht)` : "";
+    setPlacesStatus(`${hunt.stations.length} Stationen erstellt${fewer}. Schau sie dir an und passe Titel und Rätsel nach Lust an.`, "success");
+    window.scrollTo(0, 0);
+  } catch (err) {
+    setStatus(err.message, "error");
+  } finally {
+    $("btn-auto-go").disabled = false;
+  }
+}
+
+// Eigener Standort als Promise – mit verständlicher Fehlermeldung.
+function currentPosition() {
+  return new Promise((resolve, reject) => {
+    if (!("geolocation" in navigator)) {
+      reject(new Error("Dein Gerät kann den Standort nicht bestimmen. Wähle „Mitte der Karte“."));
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      (pos) => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+      () => reject(new Error("Standort nicht verfügbar. Wähle „Mitte der Karte“ und schiebe die Karte an den Startort.")),
+      { enableHighAccuracy: false, timeout: 10000, maximumAge: 60000 }
+    );
+  });
+}
+
+// ---------------------------------------------------------------------------
 // Prüfen und Fertigstellen
 // ---------------------------------------------------------------------------
 
@@ -642,6 +830,8 @@ function onNewHuntClick() {
 
   hunt = Hunt.createHunt();
   showErrors = false;
+  clearPlaceMarkers();
+  setPlacesStatus("");
   fillSettings();
   $("location-status").textContent = "";
   renderAll(); // speichert auch gleich den leeren Entwurf
@@ -684,6 +874,7 @@ async function showResult() {
   }
 
   $("edit-link").value = Hunt.buildEditLink(baseUrl, hunt);
+  $("print-title").textContent = hunt.title;
   $("copy-status").textContent = "";
   showScreen("result");
 }

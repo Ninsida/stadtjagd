@@ -5,6 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Stadtjagd – Schnitzeljagd durch deine Stadt</title>
   <meta name="description" content="In wenigen Minuten eine private Schnitzeljagd durch deine Stadt erstellen und per Link mit Freunden spielen. Ohne App, ohne Konto.">
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#ff5a5f">
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-title" content="Stadtjagd">
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -29,6 +34,7 @@
 
     <a id="btn-create" class="btn btn-primary" href="create.html">Jagd erstellen</a>
     <p id="draft-info" class="draft-info" hidden></p>
+    <a id="btn-surprise" class="btn btn-secondary" href="create.html?auto">Überrasch mich – Jagd automatisch erstellen</a>
 
     <section class="home-card" aria-labelledby="play-heading">
       <h2 id="play-heading">Jagd spielen</h2>

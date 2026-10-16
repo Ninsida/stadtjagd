@@ -7,6 +7,7 @@
 import * as Hunt from "./hunt.js";
 import * as Game from "./game.js";
 import * as Storage from "./storage.js";
+import "./pwa.js"; // als App installierbar, lädt auch bei schlechtem Netz
 import { TEXTS, pickText } from "./texts.js";
 import { launchConfetti } from "./confetti.js";
 
@@ -33,6 +34,8 @@ let watchId = null;
 let map = null;
 let positionMarker = null;
 let accuracyCircle = null;
+let lastPosition = null; // letzte GPS-Position (nur für die Probelauf-Hilfe)
+let probeMarker = null; // Station auf der Karte – NUR im Probelauf sichtbar
 
 // ---------------------------------------------------------------------------
 // Start
@@ -154,6 +157,7 @@ function renderRiddle() {
   $("hint-text").textContent = station.hint || "";
   renderButtons();
   playAnimation($("riddle-text"), "is-popping");
+  if (IS_PROBE) updateProbeHelp();
 }
 
 // Welche Buttons gerade sichtbar sind, hängt vom Fortschritt ab.
@@ -403,6 +407,7 @@ function stopGps() {
 // Spieler hat GPS verweigert oder es gibt keins → nur Lösungswort.
 function disableGps() {
   gpsAvailable = false;
+  if (IS_PROBE) setTimeout(updateProbeHelp); // Hinweis "ohne Standort" zeigen
   stopGps();
   $("map-wrap").hidden = true;
   $("no-gps").hidden = false;
@@ -435,6 +440,47 @@ function onPosition(pos) {
   } else {
     positionMarker.setLatLng(latLng);
     accuracyCircle.setLatLng(latLng).setRadius(pos.coords.accuracy);
+  }
+  lastPosition = { lat: latLng[0], lng: latLng[1], accuracy: pos.coords.accuracy };
+  if (IS_PROBE) updateProbeHelp();
+}
+
+// Probelauf-Hilfe für den Ersteller: Station auf der Karte zeigen und den
+// Abstand in Metern nennen. Für echte Spieler bleibt das verborgen.
+function updateProbeHelp() {
+  const station = Game.currentStation(hunt, progress);
+  const info = $("probe-info");
+  if (!station) {
+    info.hidden = true;
+    return;
+  }
+  info.hidden = false;
+
+  if (map) {
+    const icon = L.divIcon({
+      className: "",
+      html: `<div class="station-marker is-goal">${progress.current + 1}</div>`,
+      iconSize: [36, 36],
+      iconAnchor: [18, 18],
+    });
+    if (!probeMarker) probeMarker = L.marker([station.lat, station.lng], { icon, interactive: false }).addTo(map);
+    else probeMarker.setLatLng([station.lat, station.lng]).setIcon(icon);
+  }
+
+  if (!gpsAvailable) {
+    info.textContent = "Probelauf: Ohne Standort gibt es keine Abstandsanzeige.";
+  } else if (!lastPosition) {
+    info.textContent = "Probelauf: Die Station ist gelb auf der Karte markiert. Warte auf deinen Standort …";
+  } else {
+    const distance = Math.round(Game.distanceMeters(lastPosition, station));
+    const accuracy = Math.round(lastPosition.accuracy);
+    const verdict =
+      lastPosition.accuracy > Game.MAX_GPS_ACCURACY_M
+        ? "GPS gerade zu ungenau"
+        : distance <= Game.SOLVE_RADIUS_M
+          ? "„Ich bin da“ würde jetzt klappen"
+          : `noch zu weit (ab ${Game.SOLVE_RADIUS_M} m klappt es)`;
+    info.textContent = `Probelauf: ${distance} m bis zur Station · GPS ±${accuracy} m · ${verdict}`;
   }
 }
 

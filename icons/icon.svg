@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- App-Icon: gefaltete Karte auf gelbem Abzeichen, Hintergrund Stadtjagd-Rot.
+       Ohne runde Ecken – die rundet das Handy selbst ab. -->
+  <rect width="512" height="512" fill="#ff5a5f"/>
+  <circle cx="268" cy="268" r="170" fill="#d93d43"/>
+  <circle cx="256" cy="256" r="170" fill="#ffbe0b" stroke="#2b2235" stroke-width="18"/>
+  <g fill="none" stroke="#2b2235" stroke-width="22" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M150 196l70-35 72 35 70-35v175l-70 35-72-35-70 35z"/>
+    <path d="M220 161v175M292 196v175"/>
+  </g>
+</svg>

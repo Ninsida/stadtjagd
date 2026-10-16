@@ -13,6 +13,7 @@ const TYPES = {
   ".json": "application/json",
   ".png": "image/png",
   ".svg": "image/svg+xml",
+  ".webmanifest": "application/manifest+json",
 };
 
 http

@@ -4,6 +4,7 @@
 
 import * as Hunt from "./hunt.js";
 import * as Storage from "./storage.js";
+import "./pwa.js"; // als App installierbar, lädt auch bei schlechtem Netz
 
 const $ = (id) => document.getElementById(id);
 

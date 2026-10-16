@@ -2,6 +2,7 @@
 
 import * as Hunt from "./hunt.js";
 import * as Game from "./game.js";
+import * as Places from "./places.js";
 
 const tests = [];
 function test(name, fn) {
@@ -343,6 +344,101 @@ test("Zeit: läuft, bleibt am Ende stehen, Formatierung", () => {
   assertEqual(Game.formatDuration(75_000), "01:15");
   assertEqual(Game.formatDuration(3_725_000), "1:02:05");
   assertEqual(Game.formatDuration(0), "00:00");
+});
+
+// --- places.js -------------------------------------------------------------
+
+// Erfundene Orte rund um einen Startpunkt (0,001° Breite ≈ 111 m)
+const START = { lat: 52.5, lng: 13.4 };
+function fakePlaces() {
+  return [
+    { lat: 52.501, lng: 13.4, name: "Neptunbrunnen", kind: "fountain" },
+    { lat: 52.5012, lng: 13.4003, name: "Kleiner Brunnen", kind: "fountain" }, // ~35 m neben dem ersten
+    { lat: 52.502, lng: 13.402, name: "Marienkirche", kind: "worship" },
+    { lat: 52.503, lng: 13.4, name: "Stadtpark", kind: "park" },
+    { lat: 52.5, lng: 13.405, name: "Alter Turm", kind: "tower" },
+    { lat: 52.50005, lng: 13.4, name: "Direkt am Start", kind: "artwork" }, // zu nah am Start
+  ];
+}
+
+test("buildSearchUrl: Wikipedia-Ortssuche mit Position und Umkreis", () => {
+  const url = new URL(Places.buildSearchUrl(52.52191, 13.41321, 1000));
+  assertEqual([url.hostname, url.searchParams.get("list"), url.searchParams.get("gscoord"), url.searchParams.get("gsradius")],
+    ["de.wikipedia.org", "geosearch", "52.52191|13.41321", "1000"]);
+  assertEqual(new URL(Places.buildSearchUrl(52.5, 13.4, 50000)).searchParams.get("gsradius"), "10000");
+});
+
+test("parsePlaces: nur passende Orte, Klammerzusatz weg, Unpassendes raus", () => {
+  const item = (title, type = "landmark") => ({ title, type, lat: 52.5, lon: 13.4 });
+  const json = { query: { geosearch: [
+    item("Weltzeituhr (Alexanderplatz)"),
+    item("Fischbrunnen (München)", "building"),
+    item("Paulustor (Fulda)"),
+    item("Alexanderplatz"),
+    item("Bahnhof Berlin Alexanderplatz", "railwaystation"),
+    item("Fulda", "city"),
+    item("Berliner Sparkasse"),
+    item("Winfriedschule Fulda", "building"),
+    item("Alter jüdischer Friedhof (Fulda)"),
+    item("Marienplatz 21 (München)"),
+    item("Stelzenkrug (Berlin)", "building"), // kein bekanntes Wort → raus
+    item("Fischbrunnen"), // doppelt
+  ] } };
+  assertEqual(Places.parsePlaces(json).map((p) => [p.name, p.kind]), [
+    ["Weltzeituhr", "clock"],
+    ["Fischbrunnen", "fountain"],
+    ["Paulustor", "gate"],
+    ["Alexanderplatz", "square"],
+  ]);
+});
+
+test("kindOf: Reihenfolge und Wortgrenzen", () => {
+  assertEqual(Places.kindOf("Kölner Dom"), "worship");
+  assertEqual(Places.kindOf("Domplatz"), "square");
+  assertEqual(Places.kindOf("Brandenburger Tor"), "gate");
+  assertEqual(Places.kindOf("Fernsehturm"), "tower");
+  assertEqual(Places.kindOf("Fuldaer Stadtschloss"), "castle");
+  assertEqual(Places.kindOf("Motorhalle"), null);
+});
+
+test("directionName: Himmelsrichtungen", () => {
+  assertEqual(Places.directionName(START, { lat: 52.51, lng: 13.4 }), "Norden");
+  assertEqual(Places.directionName(START, { lat: 52.5, lng: 13.41 }), "Osten");
+  assertEqual(Places.directionName(START, { lat: 52.49, lng: 13.385 }), "Südwesten");
+});
+
+test("stationFromPlace: Rätsel mit Weg, Name als Lösung, Hinweis", () => {
+  const st = Places.stationFromPlace(fakePlaces()[0], START);
+  assertEqual(st.riddle, "Hier plätschert Wasser. Geht etwa 100 m Richtung Norden. Wie heißt der Brunnen?");
+  assertEqual(st.answers, ["Neptunbrunnen"]);
+  assertEqual(st.hint, "Der Name beginnt mit „Ne…“ und hat 13 Buchstaben.");
+});
+
+test("answersFor: Kernwort zusätzlich bei langen Namen", () => {
+  assertEqual(Places.answersFor({ name: "Berliner Fernsehturm", kind: "tower" }), ["Berliner Fernsehturm", "Fernsehturm"]);
+  assertEqual(Places.answersFor({ name: "Hochschul- und Landesbibliothek Fulda", kind: "library" }),
+    ["Hochschul- und Landesbibliothek Fulda", "Landesbibliothek"]);
+  assertEqual(Places.answersFor({ name: "Fischbrunnen", kind: "fountain" }), ["Fischbrunnen"]);
+});
+
+test("pickRoute: Anzahl, Abstand zwischen Stationen, nicht am Start", () => {
+  const route = Places.pickRoute(fakePlaces(), START, 10, () => 0.5);
+  const names = route.map((p) => p.name);
+  assert(!names.includes("Direkt am Start"), "zu nah am Start");
+  assert(!(names.includes("Neptunbrunnen") && names.includes("Kleiner Brunnen")), "zwei Brunnen nebeneinander");
+  for (let i = 0; i < route.length; i++) {
+    for (let j = i + 1; j < route.length; j++) {
+      assert(Game.distanceMeters(route[i], route[j]) >= 80, names[i] + " / " + names[j]);
+    }
+  }
+  assertEqual(Places.pickRoute(fakePlaces(), START, 2, () => 0.5).length, 2);
+});
+
+test("buildAutoHunt: gültige Jagd, letzte Station ist das Ziel", () => {
+  const hunt = Places.buildAutoHunt(fakePlaces(), START, 3, () => 0.5);
+  assertEqual(hunt.stations.length, 3);
+  assertEqual(hunt.stations.map((s) => s.goal), [false, false, true]);
+  assertEqual(Hunt.validateHunt(hunt), []);
 });
 
 // --- Ausführen ---------------------------------------------------------------
