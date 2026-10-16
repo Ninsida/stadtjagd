@@ -16,8 +16,13 @@ const $ = (id) => document.getElementById(id);
 // Sonst zeigt die Seite einen Ladehinweis.
 document.documentElement.dataset.ready = "true";
 
+// Probelauf (play.html?probe#j=...): für den Ersteller zum Ausprobieren.
+// Nichts wird gespeichert, und Überspringen ist immer möglich.
+const IS_PROBE = new URLSearchParams(location.search).has("probe");
+
 // Zustand der Seite
 let hunt = null; // Spiel-Jagd (mit Hashes)
+let fingerprint = ""; // Abdruck der Route – erkennt nachträglich geänderte Jagden
 let progress = null; // Fortschritt des Spielers
 let hintOpen = false; // Hinweis an der aktuellen Station aufgeklappt?
 let clockTimer = null;
@@ -42,21 +47,33 @@ async function init() {
     return;
   }
   document.title = hunt.title + " – Stadtjagd";
+  fingerprint = await Hunt.routeFingerprint(hunt);
 
-  // Gespeicherten Fortschritt laden – sonst neu anlegen (die Uhr startet jetzt).
-  const saved = Storage.load(Storage.KEYS.progress(hunt.id));
-  if (saved && Game.isValidProgress(hunt, saved)) {
-    progress = saved;
+  if (IS_PROBE) {
+    hunt = { ...hunt, skip: { allowed: true, afterFails: 0 } };
+    progress = newProgress();
+    $("probe-banner").hidden = false;
   } else {
-    progress = Game.createProgress(Date.now());
-    saveProgress();
+    // Gespeicherten Fortschritt laden – sonst neu anlegen (die Uhr startet jetzt).
+    const saved = Storage.load(Storage.KEYS.progress(hunt.id));
+    if (saved && Game.isValidProgress(hunt, saved) && saved.fp === fingerprint) {
+      progress = saved;
+    } else {
+      // Gab es Fortschritt zu einer älteren Fassung der Jagd? Dann Bescheid sagen.
+      if (saved) {
+        $("reset-notice").hidden = false;
+        Storage.remove(Storage.KEYS.introSeen(hunt.id));
+      }
+      progress = newProgress();
+      saveProgress();
+    }
   }
 
   bindEvents();
 
   if (Game.isFinished(progress)) {
     showFinished();
-  } else if (!Storage.load(Storage.KEYS.introSeen(hunt.id))) {
+  } else if (IS_PROBE || !Storage.load(Storage.KEYS.introSeen(hunt.id))) {
     showIntro();
   } else {
     startRiddles();
@@ -168,7 +185,8 @@ function playAnimation(el, className) {
 // ---------------------------------------------------------------------------
 
 function onStartClick() {
-  Storage.save(Storage.KEYS.introSeen(hunt.id), true);
+  if (!IS_PROBE) Storage.save(Storage.KEYS.introSeen(hunt.id), true);
+  $("reset-notice").hidden = true;
   startRiddles();
 }
 
@@ -250,8 +268,8 @@ function onRestartClick() {
   if (!confirm("Jagd wirklich neu starten? Fortschritt und Zeit werden zurückgesetzt.")) return;
   stopClock();
   stopGps();
-  updateProgress(Game.createProgress(Date.now()));
-  Storage.remove(Storage.KEYS.introSeen(hunt.id));
+  updateProgress(newProgress());
+  if (!IS_PROBE) Storage.remove(Storage.KEYS.introSeen(hunt.id));
   hintOpen = false;
   setFeedback("");
   showIntro();
@@ -278,7 +296,13 @@ function updateProgress(newProgress) {
   saveProgress();
 }
 
+// Neuer Fortschritt (Uhr startet jetzt), mit Abdruck der aktuellen Route.
+function newProgress() {
+  return { ...Game.createProgress(Date.now()), fp: fingerprint };
+}
+
 function saveProgress() {
+  if (IS_PROBE) return; // Probelauf: nichts speichern
   Storage.save(Storage.KEYS.progress(hunt.id), progress);
 }
 

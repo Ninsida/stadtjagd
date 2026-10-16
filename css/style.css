@@ -887,3 +887,68 @@ a.brand {
   color: var(--color-error);
   font-weight: 800;
 }
+
+/* ---------- Probelauf ---------- */
+
+/* Leiste unten am Bildschirm, damit man den Probelauf nicht vergisst */
+.probe-banner {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 2000;
+  margin: 0;
+  padding: 10px var(--space);
+  text-align: center;
+  font-size: 0.9rem;
+  color: var(--color-text);
+  background: var(--color-accent);
+  border-top: 3px solid var(--color-text);
+}
+
+.probe-banner[hidden] {
+  display: none;
+}
+
+/* Platz lassen, damit die Leiste nichts verdeckt */
+.probe-banner:not([hidden]) ~ .screen {
+  padding-bottom: 72px;
+}
+
+/* ---------- Ersteller: Spalten-Layout ---------- */
+
+.editor-columns,
+.editor-map-col,
+.editor-side-col {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Ab Laptop-Breite: Karte links (bleibt beim Scrollen stehen), Liste rechts */
+@media (min-width: 960px) {
+  #screen-editor {
+    max-width: 1180px;
+  }
+
+  .editor-columns {
+    display: grid;
+    grid-template-columns: minmax(0, 3fr) minmax(320px, 2fr);
+    gap: 24px;
+    align-items: start;
+  }
+
+  .editor-map-col {
+    position: sticky;
+    top: var(--space);
+  }
+
+  .map-create {
+    height: calc(100vh - 180px);
+    min-height: 420px;
+  }
+
+  .editor-side-col h2:first-child {
+    margin-top: 0;
+  }
+}

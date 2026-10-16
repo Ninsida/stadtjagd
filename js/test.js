@@ -114,6 +114,21 @@ test("Link: kaputte oder manipulierte Daten → null", () => {
   assertEqual(Hunt.parseLinkHash("#j=" + edit), null);
 });
 
+test("routeFingerprint: Texte egal, Ort/Reihenfolge/Lösung nicht", async () => {
+  const play = await Hunt.toPlayHunt(sampleHunt());
+  const fp = await Hunt.routeFingerprint(play);
+  assert(/^[A-Za-z0-9_-]{8}$/.test(fp), fp);
+
+  const textChanged = { ...play, title: "Neu", stations: play.stations.map((s) => ({ ...s, riddle: "anders" })) };
+  assertEqual(await Hunt.routeFingerprint(textChanged), fp);
+
+  const moved = { ...play, stations: play.stations.map((s, i) => (i === 0 ? { ...s, lat: s.lat + 0.001 } : s)) };
+  assert((await Hunt.routeFingerprint(moved)) !== fp, "verschobene Station muss anderen Abdruck ergeben");
+
+  const reordered = { ...play, stations: [...play.stations].reverse() };
+  assert((await Hunt.routeFingerprint(reordered)) !== fp, "neue Reihenfolge muss anderen Abdruck ergeben");
+});
+
 test("toEditableHunt: ergänzt fehlende Felder, lehnt Unsinn ab", () => {
   const raw = {
     v: 1, id: "abc", title: "T",

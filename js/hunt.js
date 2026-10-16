@@ -92,6 +92,17 @@ export async function hashAnswer(huntId, answer) {
   return toBase64Url(shortBytes);
 }
 
+// "Fingerabdruck" der Route einer Spiel-Jagd: Orte, Reihenfolge und Lösungen.
+// Ändert der Ersteller davon etwas, passt alter Spieler-Fortschritt nicht mehr.
+// Texte (Rätsel, Hinweise, Titel) zählen bewusst nicht – ein Tippfehler-Fix
+// soll niemanden zurück auf Start schicken.
+export async function routeFingerprint(playHunt) {
+  const route = playHunt.stations.map((s) => [s.lat, s.lng, s.h]);
+  const data = new TextEncoder().encode(JSON.stringify(route));
+  const digest = await crypto.subtle.digest("SHA-256", data);
+  return toBase64Url(new Uint8Array(digest).slice(0, 6));
+}
+
 // Bytes → Base64url (wie Base64, aber ohne + / =, damit es in URLs passt).
 function toBase64Url(bytes) {
   let binary = "";

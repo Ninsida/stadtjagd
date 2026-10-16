@@ -35,6 +35,9 @@
       <p id="title-error" class="field-error" hidden></p>
     </div>
 
+    <!-- Am Handy untereinander, am großen Bildschirm nebeneinander -->
+    <div class="editor-columns">
+    <div class="editor-map-col">
     <!-- Karte -->
     <div class="map-wrap">
       <div id="map" class="map map-create"></div>
@@ -45,6 +48,9 @@
       <span id="btn-here-label">Station an meinem Standort</span>
     </button>
     <p id="location-status" class="feedback is-error" role="status" aria-live="polite"></p>
+    </div>
+
+    <div class="editor-side-col">
 
     <!-- Stationsliste -->
     <h2>Stationen <span id="station-count" class="count"></span></h2>
@@ -73,6 +79,8 @@
 
     <p id="finish-status" class="feedback" role="status" aria-live="polite"></p>
     <button id="btn-finish" class="btn btn-primary">Jagd fertigstellen</button>
+    </div>
+    </div>
   </main>
 
   <!-- Ergebnis: Links und QR-Code -->
@@ -96,6 +104,9 @@
       <button id="btn-copy-play" class="btn btn-secondary">Kopieren</button>
       <button id="btn-share" class="btn btn-secondary" hidden>Teilen</button>
     </div>
+
+    <a id="btn-probe" class="btn btn-ghost" target="_blank" rel="noopener">Probelauf starten</a>
+    <p class="field-help">Spiel deine Jagd selbst einmal durch – ohne dass Zeit oder Fortschritt gespeichert werden.</p>
 
     <div class="field edit-link-box">
       <label for="edit-link">Link zum Bearbeiten</label>

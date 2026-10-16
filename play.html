@@ -18,6 +18,11 @@
     und nicht als Datei vom Computer.
   </div>
   <noscript><p class="load-warning-noscript">Stadtjagd braucht JavaScript. Bitte schalte es im Browser ein.</p></noscript>
+  <!-- Nur im Probelauf sichtbar -->
+  <p id="probe-banner" class="probe-banner" hidden>
+    <strong>Probelauf</strong> – nichts wird gespeichert, Überspringen geht immer.
+  </p>
+
   <!-- Fehler: Link kaputt -->
   <section id="screen-error" class="screen" hidden>
     <div class="badge-icon">
@@ -36,6 +41,7 @@
     </div>
     <h1 id="intro-title"></h1>
     <p id="intro-text" class="text-block"></p>
+    <p id="reset-notice" class="notice" hidden>Die Jagd wurde inzwischen geändert – ihr startet deshalb von vorn.</p>
     <button id="btn-start" class="btn btn-primary">Los geht's</button>
   </section>
 

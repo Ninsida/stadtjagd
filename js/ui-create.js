@@ -507,6 +507,8 @@ async function showResult() {
   const editLink = Hunt.buildEditLink(baseUrl, hunt);
 
   $("play-link").value = playLink;
+  // Gleicher Link, nur mit "?probe" – dann speichert die Spieler-Seite nichts
+  $("btn-probe").href = playLink.replace("play.html#", "play.html?probe#");
   $("edit-link").value = editLink;
   $("length-warning").hidden = playLink.length <= LONG_LINK;
   $("btn-share").hidden = !navigator.share;
