@@ -57,6 +57,39 @@
     <p id="stations-empty" class="notice">Noch keine Stationen. Tippe auf die Karte, um loszulegen.</p>
     <ol id="station-list" class="station-list"></ol>
 
+    <!-- Teams -->
+    <h2>Teams</h2>
+    <div class="field field-inline">
+      <input id="teams-enabled" type="checkbox">
+      <label for="teams-enabled">Mit mehreren Teams spielen</label>
+    </div>
+    <div id="teams-panel" class="teams-panel" hidden>
+      <p class="field-help">Jedes Team bekommt einen eigenen Link. Markiere eine Station als Ziel – dort treffen sich alle am Ende.</p>
+      <ul id="team-list" class="team-list"></ul>
+      <button id="btn-add-team" type="button" class="btn btn-ghost btn-small">+ Team</button>
+      <div class="field field-inline">
+        <input id="shuffle-input" type="checkbox">
+        <label for="shuffle-input">Reihenfolge pro Team mischen</label>
+      </div>
+      <p class="field-help">Gemischt startet jedes Team an einer anderen Station.</p>
+      <div class="field field-inline">
+        <input id="finale-enabled" type="checkbox">
+        <label for="finale-enabled">Finale-Rätsel am Ziel</label>
+      </div>
+      <div id="finale-fields" class="finale-fields" hidden>
+        <div class="field">
+          <label for="finale-riddle-input">Finale-Rätsel</label>
+          <textarea id="finale-riddle-input" rows="2" maxlength="500" placeholder="z. B. Was habt ihr gemeinsam gefunden?"></textarea>
+        </div>
+        <div class="field">
+          <label for="finale-answer-input">Finale-Wort</label>
+          <input id="finale-answer-input" type="text" maxlength="40" placeholder="z. B. Schatz" autocapitalize="off">
+          <p id="finale-preview" class="field-help"></p>
+        </div>
+      </div>
+      <p id="teams-error" class="field-error" hidden></p>
+    </div>
+
     <!-- Einstellungen -->
     <h2>Einstellungen</h2>
     <div class="field">
@@ -89,24 +122,27 @@
       <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 21V4M5 4h11l-2 4 2 4H5"/></svg>
     </div>
     <h1>Fertig!</h1>
-    <p class="text-block">Schick deinen Freunden den Link oder lass sie den QR-Code scannen.</p>
+    <p id="result-intro" class="text-block">Schick deinen Freunden den Link oder lass sie den QR-Code scannen.</p>
 
-    <div id="qr-code" class="qr-code" role="img" aria-label="QR-Code mit dem Spiel-Link"></div>
-    <p id="qr-error" class="notice" hidden></p>
-    <p id="length-warning" class="notice" hidden>Der Link ist sehr lang. Manche Handys können den
-      QR-Code dann schlecht scannen – kürzere Rätsel-Texte helfen.</p>
+    <!-- Eine Karte pro Team (oder eine ohne Teams), gefüllt von ui-create.js -->
+    <div id="result-cards" class="result-cards"></div>
+    <p class="field-help">„Probelauf“: Spiel die Jagd selbst einmal durch – ohne dass Zeit oder Fortschritt gespeichert werden.</p>
 
-    <div class="field">
-      <label for="play-link">Link zum Spielen</label>
-      <input id="play-link" type="text" readonly>
-    </div>
-    <div class="button-row">
-      <button id="btn-copy-play" class="btn btn-secondary">Kopieren</button>
-      <button id="btn-share" class="btn btn-secondary" hidden>Teilen</button>
-    </div>
-
-    <a id="btn-probe" class="btn btn-ghost" target="_blank" rel="noopener">Probelauf starten</a>
-    <p class="field-help">Spiel deine Jagd selbst einmal durch – ohne dass Zeit oder Fortschritt gespeichert werden.</p>
+    <template id="tpl-result-card">
+      <article class="result-card">
+        <h2 class="team-badge team-badge-big result-team" hidden></h2>
+        <div class="qr-code" role="img" aria-label="QR-Code mit dem Spiel-Link"></div>
+        <p class="notice qr-error" hidden></p>
+        <p class="notice length-warning" hidden>Der Link ist sehr lang. Manche Handys können den
+          QR-Code dann schlecht scannen – kürzere Rätsel-Texte helfen.</p>
+        <input class="play-link" type="text" readonly aria-label="Link zum Spielen">
+        <div class="button-row">
+          <button type="button" class="btn btn-secondary btn-copy">Kopieren</button>
+          <button type="button" class="btn btn-secondary btn-share" hidden>Teilen</button>
+        </div>
+        <a class="btn btn-ghost btn-probe" target="_blank" rel="noopener">Probelauf</a>
+      </article>
+    </template>
 
     <div class="field edit-link-box">
       <label for="edit-link">Link zum Bearbeiten</label>
@@ -141,6 +177,16 @@
         <label for="hint-input">Hinweis <span class="optional">(optional)</span></label>
         <input id="hint-input" type="text" maxlength="300" placeholder="Hilft nach dem ersten Fehlversuch">
       </div>
+
+      <div class="field field-inline">
+        <input id="goal-input" type="checkbox">
+        <label for="goal-input">Das ist das Ziel (immer die letzte Station)</label>
+      </div>
+
+      <fieldset id="station-teams" class="field" hidden>
+        <legend>Für welche Teams?</legend>
+        <div id="station-team-options" class="team-options"></div>
+      </fieldset>
 
       <div class="sheet-actions">
         <button id="btn-save-station" type="submit" class="btn btn-primary">Speichern</button>

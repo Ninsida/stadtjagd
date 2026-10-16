@@ -48,6 +48,7 @@ async function init() {
   }
   document.title = hunt.title + " – Stadtjagd";
   fingerprint = await Hunt.routeFingerprint(hunt);
+  showTeam();
 
   if (IS_PROBE) {
     hunt = { ...hunt, skip: { allowed: true, afterFails: 0 } };
@@ -99,6 +100,7 @@ function bindEvents() {
   $("btn-skip").addEventListener("click", onSkipClick);
   $("btn-restart").addEventListener("click", onRestartClick);
   $("btn-replay").addEventListener("click", onRestartClick);
+  $("finale-form").addEventListener("submit", onFinaleSubmit);
   // Neuer Link in derselben Seite eingefügt → komplett neu laden
   window.addEventListener("hashchange", () => location.reload());
 }
@@ -112,6 +114,19 @@ function showScreen(name) {
     $("screen-" + screen).hidden = screen !== name;
   }
   window.scrollTo(0, 0);
+}
+
+// Teamname und -farbe anzeigen (nur bei Team-Links).
+function showTeam() {
+  if (!hunt.team) return;
+  // Farbe ist beim Einlesen des Links geprüft (#rrggbb) – sicher für CSS.
+  document.documentElement.style.setProperty("--team-color", hunt.team.color);
+  const label = hunt.team.name;
+  for (const id of ["intro-team", "header-team", "finished-team"]) {
+    $(id).textContent = label;
+    $(id).hidden = false;
+  }
+  $("intro-team").textContent = "Ihr seid " + label;
 }
 
 function showIntro() {
@@ -162,8 +177,41 @@ function showFinished(celebrate = false) {
   $("finished-skipped").hidden = skipped === 0;
   $("outro-text").textContent = hunt.outro || "";
   $("outro-text").hidden = !hunt.outro;
+  renderFinale();
   showScreen("finished");
   if (celebrate) launchConfetti("big");
+}
+
+function renderFinale() {
+  const solved = Boolean(progress.finaleSolved);
+  $("finale-box").hidden = !Game.hasFinale(hunt) || solved;
+  $("finale-solved").hidden = !solved;
+  if (!Game.hasFinale(hunt)) return;
+  $("finale-riddle").textContent = hunt.finale.riddle;
+  $("finale-part-number").textContent = `(${hunt.finale.partNumber} von ${hunt.team.count})`;
+  $("finale-part").textContent = hunt.finale.part;
+}
+
+async function onFinaleSubmit(event) {
+  event.preventDefault();
+  const input = $("finale-input");
+  if (input.value.trim() === "") return;
+
+  $("btn-finale").disabled = true;
+  const result = await Game.checkFinale(hunt, progress, input.value);
+  $("btn-finale").disabled = false;
+  input.value = "";
+
+  if (result.correct) {
+    updateProgress(result.progress);
+    renderFinale();
+    launchConfetti("big");
+  } else {
+    const el = $("finale-feedback");
+    el.textContent = "Das ist noch nicht das ganze Wort. Habt ihr alle Teile?";
+    el.className = "feedback is-error";
+    playAnimation($("finale-form"), "is-shaking");
+  }
 }
 
 function setFeedback(text, type) {

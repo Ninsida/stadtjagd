@@ -40,6 +40,7 @@
       <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6l6-3 6 3 6-3v15l-6 3-6-3-6 3z"/><path d="M9 3v15M15 6v15"/></svg>
     </div>
     <h1 id="intro-title"></h1>
+    <p id="intro-team" class="team-badge team-badge-big" hidden></p>
     <p id="intro-text" class="text-block"></p>
     <p id="reset-notice" class="notice" hidden>Die Jagd wurde inzwischen geändert – ihr startet deshalb von vorn.</p>
     <button id="btn-start" class="btn btn-primary">Los geht's</button>
@@ -49,7 +50,10 @@
   <section id="screen-riddle" class="screen" hidden>
     <header class="play-header">
       <div class="play-header-row">
-        <span id="station-label"></span>
+        <span class="header-left">
+          <span id="header-team" class="team-badge" hidden></span>
+          <span id="station-label"></span>
+        </span>
         <span id="clock" class="clock">00:00</span>
       </div>
       <div class="progress-bar"><div id="progress-fill" class="progress-fill"></div></div>
@@ -98,9 +102,27 @@
     </div>
     <h1>Geschafft!</h1>
     <p id="finished-title" class="finished-title"></p>
+    <p id="finished-team" class="team-badge team-badge-big" hidden></p>
     <p class="finished-time">Eure Zeit: <strong id="finished-time"></strong></p>
     <p id="finished-skipped" hidden></p>
     <p id="outro-text" class="text-block"></p>
+
+    <!-- Finale: nur bei Teams. Jedes Team kennt nur seinen Teil des Worts. -->
+    <section id="finale-box" class="finale-box" hidden aria-labelledby="finale-heading">
+      <h2 id="finale-heading">Finale</h2>
+      <p id="finale-riddle" class="text-block"></p>
+      <p class="finale-part">Euer Teil <span id="finale-part-number"></span>:
+        <strong id="finale-part"></strong></p>
+      <p class="field-help">Sammelt am Ziel die Teile aller Teams und gebt gemeinsam das ganze Wort ein.</p>
+      <form id="finale-form" class="answer-form" autocomplete="off">
+        <label for="finale-input" class="visually-hidden">Finale-Wort</label>
+        <input id="finale-input" type="text" placeholder="Ganzes Wort" autocapitalize="off" spellcheck="false" required>
+        <button id="btn-finale" type="submit" class="btn btn-primary">Lösen</button>
+      </form>
+      <p id="finale-feedback" class="feedback" role="status" aria-live="polite"></p>
+    </section>
+    <p id="finale-solved" class="finale-solved" hidden>Finale geknackt – ihr habt es gemeinsam geschafft!</p>
+
     <button id="btn-replay" class="btn btn-secondary">Nochmal spielen</button>
   </section>
 

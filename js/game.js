@@ -4,7 +4,7 @@
 // NEUE Daten zurück, statt die alten zu verändern. "now" (Zeitstempel in ms)
 // wird von außen übergeben – so lässt sich alles leicht testen.
 
-import { hashAnswer } from "./hunt.js";
+import { hashAnswer, finaleKey } from "./hunt.js";
 
 export const SOLVE_RADIUS_M = 30; // so nah muss man an der Station sein
 export const MAX_GPS_ACCURACY_M = 50; // ungenauere Positionen akzeptieren wir nicht
@@ -133,6 +133,25 @@ export function skipStation(hunt, progress, now) {
   if (!canSkip(hunt, progress)) return progress;
   const skipped = [...progress.skipped, progress.current];
   return advance(hunt, { ...progress, skipped }, now);
+}
+
+// ---------------------------------------------------------------------------
+// Finale (nur bei Teams): alle Teile zusammen ergeben ein Wort
+// ---------------------------------------------------------------------------
+
+export function hasFinale(hunt) {
+  return hunt.finale !== undefined;
+}
+
+// Ergebnis: { correct, progress } – bei Erfolg merkt sich der Fortschritt "finaleSolved".
+// Leerzeichen sind egal ("Berliner Dom" = "BerlinerDom"). Falsche Versuche zählen nicht.
+export async function checkFinale(hunt, progress, input) {
+  if (!hasFinale(hunt)) return { correct: false, progress };
+  const inputHash = await hashAnswer(hunt.id, finaleKey(input));
+  if (hunt.finale.h.includes(inputHash)) {
+    return { correct: true, progress: { ...progress, finaleSolved: true } };
+  }
+  return { correct: false, progress };
 }
 
 // ---------------------------------------------------------------------------

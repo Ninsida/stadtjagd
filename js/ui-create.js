@@ -24,7 +24,7 @@ let editing = null; // { index, lat, lng } – index null = neue Station
 // Karte
 let map = null;
 let stationMarkers = [];
-let routeLine = null;
+let routeLines = []; // gestrichelte Linien: eine pro Team (oder eine ohne Teams)
 let newMarker = null; // grauer Marker für eine Station, die gerade angelegt wird
 
 const GERMANY_CENTER = [51.1657, 10.4515];
@@ -108,14 +108,40 @@ function bindEvents() {
     renderErrors();
   });
 
+  // Teams
+  $("teams-enabled").addEventListener("change", onTeamsToggle);
+  $("btn-add-team").addEventListener("click", onAddTeam);
+  $("shuffle-input").addEventListener("change", (e) => {
+    hunt.shuffle = e.target.checked;
+    renderAll();
+  });
+  $("finale-enabled").addEventListener("change", (e) => {
+    hunt.finale.enabled = e.target.checked;
+    renderTeams();
+    renderAll();
+  });
+  $("finale-riddle-input").addEventListener("input", (e) => {
+    hunt.finale.riddle = e.target.value;
+    saveDraft();
+    renderErrors();
+  });
+  $("finale-answer-input").addEventListener("input", (e) => {
+    hunt.finale.answer = e.target.value;
+    saveDraft();
+    renderFinalePreview();
+    renderErrors();
+  });
+  $("goal-input").addEventListener("change", (e) => {
+    // Das Ziel gilt immer für alle Teams → Team-Auswahl ausblenden
+    $("station-teams").hidden = e.target.checked || !Hunt.hasTeams(hunt);
+  });
+
   $("btn-here").addEventListener("click", onHereClick);
   $("btn-finish").addEventListener("click", onFinishClick);
   $("btn-new").addEventListener("click", onNewHuntClick);
 
-  // Ergebnis-Bildschirm
-  $("btn-copy-play").addEventListener("click", () => copyLink("play-link", "Spiel-Link kopiert!"));
-  $("btn-copy-edit").addEventListener("click", () => copyLink("edit-link", "Bearbeiten-Link kopiert!"));
-  $("btn-share").addEventListener("click", onShareClick);
+  // Ergebnis-Bildschirm (Spiel-Links bekommen ihre Buttons pro Karte in showResult)
+  $("btn-copy-edit").addEventListener("click", () => copyLink($("edit-link"), "Bearbeiten-Link kopiert!"));
   $("btn-back").addEventListener("click", () => showScreen("editor"));
 
   // Bearbeiten-Link in den schon offenen Tab eingefügt → Seite neu laden,
@@ -139,6 +165,102 @@ function fillSettings() {
   $("skip-allowed").checked = hunt.skip.allowed;
   $("skip-fails").value = hunt.skip.afterFails;
   $("skip-fails-field").hidden = !hunt.skip.allowed;
+  $("teams-enabled").checked = Hunt.hasTeams(hunt);
+  $("shuffle-input").checked = hunt.shuffle;
+  $("finale-enabled").checked = hunt.finale.enabled;
+  $("finale-riddle-input").value = hunt.finale.riddle;
+  $("finale-answer-input").value = hunt.finale.answer;
+  renderTeams();
+}
+
+// ---------------------------------------------------------------------------
+// Teams
+// ---------------------------------------------------------------------------
+
+function onTeamsToggle(event) {
+  if (event.target.checked) {
+    // Mit zwei Teams starten – mehr kann man hinzufügen
+    while (hunt.teams.length < Hunt.MIN_TEAMS) hunt.teams.push(Hunt.createTeam(hunt));
+  } else {
+    hunt.teams = [];
+    hunt.finale.enabled = false;
+    $("finale-enabled").checked = false;
+    // Team-Zuordnungen der Stationen passen nicht mehr → zurück auf "alle"
+    hunt.stations.forEach((s) => (s.teams = null));
+  }
+  renderTeams();
+  renderAll();
+}
+
+function onAddTeam() {
+  if (hunt.teams.length >= Hunt.MAX_TEAMS) return;
+  hunt.teams.push(Hunt.createTeam(hunt));
+  renderTeams();
+  renderAll();
+}
+
+function onRemoveTeam(index) {
+  const name = hunt.teams[index].name || "dieses Team";
+  if (!confirm(`„${name}“ entfernen?`)) return;
+  hunt = Hunt.removeTeam(hunt, index);
+  renderTeams();
+  renderAll();
+}
+
+// Teams-Bereich neu aufbauen: Liste mit Name und Farbe, Buttons, Finale.
+function renderTeams() {
+  const on = Hunt.hasTeams(hunt);
+  $("teams-panel").hidden = !on;
+  $("finale-fields").hidden = !hunt.finale.enabled;
+  $("btn-add-team").hidden = hunt.teams.length >= Hunt.MAX_TEAMS;
+
+  const list = $("team-list");
+  list.replaceChildren();
+  hunt.teams.forEach((team, index) => {
+    const li = document.createElement("li");
+    li.className = "team-row";
+    li.style.setProperty("--team-color", team.color);
+
+    const dot = document.createElement("span");
+    dot.className = "team-dot";
+
+    const input = document.createElement("input");
+    input.type = "text";
+    input.maxLength = 30;
+    input.value = team.name;
+    input.setAttribute("aria-label", `Name von Team ${index + 1}`);
+    input.addEventListener("input", () => {
+      team.name = input.value;
+      saveDraft();
+      renderList(); // Teamnamen stehen auch in der Stationsliste
+      renderErrors();
+    });
+
+    const remove = document.createElement("button");
+    remove.type = "button";
+    remove.className = "btn btn-icon";
+    remove.textContent = "×";
+    remove.setAttribute("aria-label", `Team ${index + 1} entfernen`);
+    // Unter zwei Teams geht nicht – dann lieber Teams ganz ausschalten
+    remove.disabled = hunt.teams.length <= Hunt.MIN_TEAMS;
+    remove.addEventListener("click", () => onRemoveTeam(index));
+
+    li.append(dot, input, remove);
+    list.append(li);
+  });
+  renderFinalePreview();
+}
+
+// Zeigt, wie das Finale-Wort aufgeteilt wird: "Rot: SC · Blau: HA · Grün: TZ"
+function renderFinalePreview() {
+  const answer = Hunt.finaleKey(hunt.finale.answer);
+  if (!Hunt.hasTeams(hunt) || answer === "") {
+    $("finale-preview").textContent = "Das Wort wird auf die Teams aufgeteilt – jedes Team findet nur seinen Teil.";
+    return;
+  }
+  const parts = Hunt.splitFinale(answer, hunt.teams.length);
+  $("finale-preview").textContent =
+    "Aufteilung: " + hunt.teams.map((t, i) => `${t.name || "Team " + (i + 1)}: ${parts[i] || "–"}`).join(" · ");
 }
 
 // ---------------------------------------------------------------------------
@@ -171,11 +293,11 @@ function initMap() {
 
 function renderMap() {
   stationMarkers.forEach((m) => m.remove());
-  if (routeLine) routeLine.remove();
+  routeLines.forEach((l) => l.remove());
 
   stationMarkers = hunt.stations.map((station, index) => {
     const marker = L.marker([station.lat, station.lng], {
-      icon: numberIcon(index + 1),
+      icon: numberIcon(station.goal ? "Z" : index + 1, station.goal ? "is-goal" : ""),
       draggable: true,
       title: "Station " + (index + 1),
     }).addTo(map);
@@ -190,9 +312,13 @@ function renderMap() {
     return marker;
   });
 
-  // Gestrichelte Linie zeigt die Reihenfolge
-  const points = hunt.stations.map((s) => [s.lat, s.lng]);
-  routeLine = L.polyline(points, { color: "#ff5a5f", weight: 3, dashArray: "6 8" }).addTo(map);
+  // Gestrichelte Linien zeigen die Reihenfolge – bei Teams eine pro Team in Teamfarbe
+  const routes = Hunt.teamRoutes(hunt);
+  routeLines = routes.map((route, t) => {
+    const points = route.map((i) => [hunt.stations[i].lat, hunt.stations[i].lng]);
+    const color = Hunt.hasTeams(hunt) ? hunt.teams[t].color : "#ff5a5f";
+    return L.polyline(points, { color, weight: 3, opacity: 0.85, dashArray: "6 8", dashOffset: String(t * 4) }).addTo(map);
+  });
 }
 
 // Runder Marker mit Nummer (als HTML statt Bild).
@@ -261,8 +387,8 @@ function renderList() {
     handle.setAttribute("aria-label", "Ziehen zum Sortieren");
 
     const number = document.createElement("span");
-    number.className = "station-number";
-    number.textContent = index + 1;
+    number.className = "station-number" + (station.goal ? " is-goal" : "");
+    number.textContent = station.goal ? "Z" : index + 1;
 
     const body = document.createElement("button");
     body.type = "button";
@@ -302,6 +428,11 @@ function describeStation(station) {
   const n = station.answers.filter((a) => a.trim() !== "").length;
   const parts = [n === 1 ? "1 Lösungswort" : `${n} Lösungswörter`];
   if (station.hint.trim()) parts.push("mit Hinweis");
+  if (station.goal) parts.unshift("Ziel");
+  else if (Hunt.hasTeams(hunt) && station.teams !== null) {
+    const names = station.teams.map((t) => hunt.teams[t]?.name).filter(Boolean);
+    parts.push(names.length ? "nur " + names.join(", ") : "kein Team");
+  }
   return parts.join(" · ");
 }
 
@@ -332,6 +463,8 @@ function openSheet(index, latLng) {
   $("riddle-input").value = station ? station.riddle : "";
   $("hint-input").value = station ? station.hint : "";
   $("btn-delete-station").hidden = isNew;
+  $("goal-input").checked = station ? station.goal : false;
+  renderStationTeamOptions(station);
 
   $("answer-rows").replaceChildren();
   const answers = station && station.answers.length ? station.answers : [""];
@@ -345,6 +478,27 @@ function openSheet(index, latLng) {
   }
 
   $("station-dialog").showModal();
+}
+
+// Kästchen "Für welche Teams?" – nur sichtbar, wenn es Teams gibt und die
+// Station nicht das Ziel ist. Alle angehakt = Station gilt für alle Teams.
+function renderStationTeamOptions(station) {
+  const box = $("station-team-options");
+  box.replaceChildren();
+  $("station-teams").hidden = !Hunt.hasTeams(hunt) || $("goal-input").checked;
+  hunt.teams.forEach((team, t) => {
+    const label = document.createElement("label");
+    label.className = "team-option";
+    label.style.setProperty("--team-color", team.color);
+    const check = document.createElement("input");
+    check.type = "checkbox";
+    check.value = String(t);
+    check.checked = !station || Hunt.stationBelongsToTeam(station, t);
+    const text = document.createElement("span");
+    text.textContent = team.name || "Team " + (t + 1);
+    label.append(check, text);
+    box.append(label);
+  });
 }
 
 function addAnswerRow(value, focus = false) {
@@ -381,11 +535,21 @@ function onStationSave(event) {
   const answers = [...$("answer-rows").querySelectorAll("input")]
     .map((input) => input.value.trim())
     .filter((a) => a !== "");
+  const goal = $("goal-input").checked;
+  let teams = null;
+  if (Hunt.hasTeams(hunt) && !goal) {
+    const checked = [...$("station-team-options").querySelectorAll("input:checked")].map((c) => Number(c.value));
+    teams = checked.length === hunt.teams.length ? null : checked; // alle angehakt = null
+  }
   const values = {
     riddle: $("riddle-input").value.trim(),
     answers,
     hint: $("hint-input").value.trim(),
+    goal,
+    teams,
   };
+  // Es gibt nur ein Ziel: neues Ziel → bei allen anderen Stationen abwählen
+  if (goal) hunt.stations.forEach((s) => (s.goal = false));
 
   if (editing.index === null) {
     hunt.stations.push({ ...Hunt.createStation(editing.lat, editing.lng), ...values });
@@ -443,6 +607,10 @@ function renderErrors() {
   $("skip-error").textContent = skipError ? skipError.message : "";
   $("skip-error").hidden = !skipError;
   $("skip-fails").classList.toggle("is-invalid", Boolean(skipError));
+
+  const teamErrors = errors.filter((e) => e.field === "teams" || e.field === "finale" || e.field === "goal");
+  $("teams-error").textContent = teamErrors.map((e) => e.message).join(" ");
+  $("teams-error").hidden = teamErrors.length === 0;
 
   if (errors.length === 0) setFinishStatus("", "");
 }
@@ -502,25 +670,54 @@ function showScreen(name) {
 async function showResult() {
   // Ordner, in dem create.html liegt – dort liegt auch play.html
   const baseUrl = new URL(".", location.href).href;
-  const playHunt = await Hunt.toPlayHunt(hunt);
-  const playLink = Hunt.buildPlayLink(baseUrl, playHunt);
-  const editLink = Hunt.buildEditLink(baseUrl, hunt);
+  const results = await Hunt.toPlayHunts(hunt); // eine Spiel-Jagd pro Team (oder eine)
 
-  $("play-link").value = playLink;
-  // Gleicher Link, nur mit "?probe" – dann speichert die Spieler-Seite nichts
-  $("btn-probe").href = playLink.replace("play.html#", "play.html?probe#");
-  $("edit-link").value = editLink;
-  $("length-warning").hidden = playLink.length <= LONG_LINK;
-  $("btn-share").hidden = !navigator.share;
+  $("result-intro").textContent = Hunt.hasTeams(hunt)
+    ? "Jedes Team bekommt seinen eigenen Link oder QR-Code. Am Ziel treffen sich alle."
+    : "Schick deinen Freunden den Link oder lass sie den QR-Code scannen.";
+  $("screen-result").classList.toggle("has-teams", Hunt.hasTeams(hunt));
+
+  const cards = $("result-cards");
+  cards.replaceChildren();
+  for (const { team, playHunt } of results) {
+    cards.append(buildResultCard(team, Hunt.buildPlayLink(baseUrl, playHunt)));
+  }
+
+  $("edit-link").value = Hunt.buildEditLink(baseUrl, hunt);
   $("copy-status").textContent = "";
-  renderQrCode(playLink);
   showScreen("result");
 }
 
-function renderQrCode(text) {
-  const box = $("qr-code");
+// Eine Karte aus der Vorlage im HTML: QR-Code, Link, Kopieren, Teilen, Probelauf.
+function buildResultCard(team, playLink) {
+  const card = $("tpl-result-card").content.firstElementChild.cloneNode(true);
+  const q = (selector) => card.querySelector(selector);
+
+  if (team) {
+    // Farbe stammt aus TEAM_COLORS bzw. ist beim Laden als #rrggbb geprüft
+    card.style.setProperty("--team-color", team.color);
+    card.classList.add("is-team");
+    q(".result-team").textContent = team.name;
+    q(".result-team").hidden = false;
+  }
+
+  renderQrCode(q(".qr-code"), q(".qr-error"), playLink);
+  q(".length-warning").hidden = playLink.length <= LONG_LINK;
+  q(".play-link").value = playLink;
+
+  const what = team ? `Link für ${team.name}` : "Spiel-Link";
+  q(".btn-copy").addEventListener("click", () => copyLink(q(".play-link"), what + " kopiert!"));
+  q(".btn-share").hidden = !navigator.share;
+  q(".btn-share").addEventListener("click", () => shareLink(playLink, team));
+  // Gleicher Link, nur mit "?probe" – dann speichert die Spieler-Seite nichts
+  q(".btn-probe").href = playLink.replace("play.html#", "play.html?probe#");
+  q(".btn-probe").textContent = team ? `Probelauf als ${team.name}` : "Probelauf starten";
+  return card;
+}
+
+function renderQrCode(box, errorEl, text) {
   box.replaceChildren();
-  $("qr-error").hidden = true;
+  errorEl.hidden = true;
 
   // Erst mittlere Fehlerkorrektur ("M") versuchen. Ist der Link dafür zu lang,
   // geht "L" – passt mehr hinein, ist aber etwas empfindlicher.
@@ -536,12 +733,11 @@ function renderQrCode(text) {
       // zu lang für diese Stufe – nächste versuchen
     }
   }
-  $("qr-error").textContent = "Der Link ist zu lang für einen QR-Code. Teile ihn stattdessen per Kopieren.";
-  $("qr-error").hidden = false;
+  errorEl.textContent = "Der Link ist zu lang für einen QR-Code. Teile ihn stattdessen per Kopieren.";
+  errorEl.hidden = false;
 }
 
-async function copyLink(inputId, message) {
-  const input = $(inputId);
+async function copyLink(input, message) {
   const status = $("copy-status");
   try {
     await navigator.clipboard.writeText(input.value);
@@ -557,13 +753,12 @@ async function copyLink(inputId, message) {
   }
 }
 
-async function onShareClick() {
+async function shareLink(url, team) {
+  const text = team
+    ? `Ihr seid ${team.name}! Spielt die Schnitzeljagd: ${hunt.title}`
+    : "Spiel meine Schnitzeljagd: " + hunt.title;
   try {
-    await navigator.share({
-      title: hunt.title,
-      text: "Spiel meine Schnitzeljagd: " + hunt.title,
-      url: $("play-link").value,
-    });
+    await navigator.share({ title: hunt.title, text, url });
   } catch {
     // Teilen abgebrochen – nichts zu tun
   }
