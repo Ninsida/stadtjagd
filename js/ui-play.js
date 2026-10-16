@@ -12,6 +12,10 @@ import { launchConfetti } from "./confetti.js";
 
 const $ = (id) => document.getElementById(id);
 
+// Signal an die Seite: Skript (und alle Imports) wurden geladen.
+// Sonst zeigt die Seite einen Ladehinweis.
+document.documentElement.dataset.ready = "true";
+
 // Zustand der Seite
 let hunt = null; // Spiel-Jagd (mit Hashes)
 let progress = null; // Fortschritt des Spielers

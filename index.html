@@ -8,10 +8,20 @@
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+  <!-- Ladehinweis: Ohne CSS ist er sichtbar, mit CSS versteckt. Lädt das
+       JavaScript nicht (z. B. Datei direkt geöffnet), blendet das Skript unten
+       ihn wieder ein. -->
+  <div class="load-warning" role="alert">
+    <strong>Hoppla – die Seite wurde nicht vollständig geladen.</strong>
+    Öffne Stadtjagd bitte über
+    <a href="https://ninsida.github.io/stadtjagd/">ninsida.github.io/stadtjagd</a>
+    und nicht als Datei vom Computer.
+  </div>
+  <noscript><p class="load-warning-noscript">Stadtjagd braucht JavaScript. Bitte schalte es im Browser ein.</p></noscript>
   <main id="screen-home" class="screen">
     <p class="brand">Stadtjagd</p>
     <div class="badge-icon">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6l6-3 6 3 6-3v15l-6 3-6-3-6 3z"/><path d="M9 3v15M15 6v15"/></svg>
+      <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6l6-3 6 3 6-3v15l-6 3-6-3-6 3z"/><path d="M9 3v15M15 6v15"/></svg>
     </div>
     <h1>Schnitzeljagd durch deine Stadt</h1>
     <p class="intro-text">Rätsel auf die Karte setzen, Link verschicken, losrennen.
@@ -36,6 +46,15 @@
   </main>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.5.0/lz-string.min.js"></script>
+  <script>
+    // Hat unser Haupt-Skript gestartet? Es setzt data-ready am <html>-Element.
+    // Wenn nicht (Datei-Vorschau, blockiertes Skript), Ladehinweis zeigen.
+    window.addEventListener("load", function () {
+      if (!document.documentElement.dataset.ready) {
+        document.documentElement.classList.add("load-failed");
+      }
+    });
+  </script>
   <script type="module" src="js/ui-index.js"></script>
 </body>
 </html>

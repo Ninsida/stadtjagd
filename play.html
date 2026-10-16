@@ -8,10 +8,20 @@
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+  <!-- Ladehinweis: Ohne CSS ist er sichtbar, mit CSS versteckt. Lädt das
+       JavaScript nicht (z. B. Datei direkt geöffnet), blendet das Skript unten
+       ihn wieder ein. -->
+  <div class="load-warning" role="alert">
+    <strong>Hoppla – die Seite wurde nicht vollständig geladen.</strong>
+    Öffne Stadtjagd bitte über
+    <a href="https://ninsida.github.io/stadtjagd/">ninsida.github.io/stadtjagd</a>
+    und nicht als Datei vom Computer.
+  </div>
+  <noscript><p class="load-warning-noscript">Stadtjagd braucht JavaScript. Bitte schalte es im Browser ein.</p></noscript>
   <!-- Fehler: Link kaputt -->
   <section id="screen-error" class="screen" hidden>
     <div class="badge-icon">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6V14M12 17.5v.01"/></svg>
+      <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6V14M12 17.5v.01"/></svg>
     </div>
     <h1>Hoppla!</h1>
     <p id="error-text">Dieser Link funktioniert leider nicht. Vielleicht wurde er beim Kopieren abgeschnitten?
@@ -22,7 +32,7 @@
   <section id="screen-intro" class="screen" hidden>
     <p class="brand">Stadtjagd</p>
     <div class="badge-icon">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6l6-3 6 3 6-3v15l-6 3-6-3-6 3z"/><path d="M9 3v15M15 6v15"/></svg>
+      <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6l6-3 6 3 6-3v15l-6 3-6-3-6 3z"/><path d="M9 3v15M15 6v15"/></svg>
     </div>
     <h1 id="intro-title"></h1>
     <p id="intro-text" class="text-block"></p>
@@ -50,19 +60,19 @@
     <p id="feedback" class="feedback" role="status" aria-live="polite"></p>
 
     <button id="btn-here" class="btn btn-secondary" hidden>
-      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>
+      <svg class="icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>
       <span id="btn-here-label">Ich bin da</span>
     </button>
     <button id="btn-hint" class="btn btn-ghost" hidden>
-      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z"/></svg>
+      <svg class="icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z"/></svg>
       Hinweis zeigen
     </button>
     <div id="hint-box" class="hint" hidden>
-      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z"/></svg>
+      <svg class="icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z"/></svg>
       <p id="hint-text" class="text-block"></p>
     </div>
     <button id="btn-skip" class="btn btn-ghost" hidden>
-      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 6l7 6-7 6M13 6l7 6-7 6"/></svg>
+      <svg class="icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 6l7 6-7 6M13 6l7 6-7 6"/></svg>
       Station überspringen
     </button>
 
@@ -78,7 +88,7 @@
   <!-- Geschafft -->
   <section id="screen-finished" class="screen" hidden>
     <div class="badge-icon">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M7 6H4a3 3 0 0 0 3 4M17 6h3a3 3 0 0 1-3 4"/></svg>
+      <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M7 6H4a3 3 0 0 0 3 4M17 6h3a3 3 0 0 1-3 4"/></svg>
     </div>
     <h1>Geschafft!</h1>
     <p id="finished-title" class="finished-title"></p>
@@ -90,6 +100,15 @@
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.5.0/lz-string.min.js"></script>
+  <script>
+    // Hat unser Haupt-Skript gestartet? Es setzt data-ready am <html>-Element.
+    // Wenn nicht (Datei-Vorschau, blockiertes Skript), Ladehinweis zeigen.
+    window.addEventListener("load", function () {
+      if (!document.documentElement.dataset.ready) {
+        document.documentElement.classList.add("load-failed");
+      }
+    });
+  </script>
   <script type="module" src="js/ui-play.js"></script>
 </body>
 </html>

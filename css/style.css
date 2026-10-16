@@ -864,3 +864,26 @@ a.brand {
 .intro-text {
   margin: 0;
 }
+
+/* ---------- Ladehinweis ---------- */
+
+/* Normal versteckt. Ohne CSS greift diese Regel nicht → Hinweis sichtbar.
+   Ohne JavaScript setzt das Prüf-Skript "load-failed" → Hinweis sichtbar. */
+.load-warning {
+  display: none;
+}
+
+.load-failed .load-warning,
+.load-warning-noscript {
+  display: block;
+  margin: var(--space);
+  padding: var(--space);
+  background: var(--color-accent-soft);
+  border: 3px solid var(--color-error);
+  border-radius: var(--radius);
+}
+
+.load-failed .load-warning a {
+  color: var(--color-error);
+  font-weight: 800;
+}

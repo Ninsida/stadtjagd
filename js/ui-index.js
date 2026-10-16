@@ -7,6 +7,10 @@ import * as Storage from "./storage.js";
 
 const $ = (id) => document.getElementById(id);
 
+// Signal an die Seite: Skript (und alle Imports) wurden geladen.
+// Sonst zeigt die Seite einen Ladehinweis.
+document.documentElement.dataset.ready = "true";
+
 showDraftInfo();
 $("link-form").addEventListener("submit", onLinkSubmit);
 

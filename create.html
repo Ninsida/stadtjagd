@@ -8,6 +8,16 @@
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+  <!-- Ladehinweis: Ohne CSS ist er sichtbar, mit CSS versteckt. Lädt das
+       JavaScript nicht (z. B. Datei direkt geöffnet), blendet das Skript unten
+       ihn wieder ein. -->
+  <div class="load-warning" role="alert">
+    <strong>Hoppla – die Seite wurde nicht vollständig geladen.</strong>
+    Öffne Stadtjagd bitte über
+    <a href="https://ninsida.github.io/stadtjagd/">ninsida.github.io/stadtjagd</a>
+    und nicht als Datei vom Computer.
+  </div>
+  <noscript><p class="load-warning-noscript">Stadtjagd braucht JavaScript. Bitte schalte es im Browser ein.</p></noscript>
   <main id="screen-editor" class="screen">
     <a class="brand" href="./">Stadtjagd</a>
     <div class="title-row">
@@ -31,7 +41,7 @@
     </div>
     <p class="map-help">Tippe auf die Karte, um eine Station zu setzen. Marker kannst du verschieben.</p>
     <button id="btn-here" class="btn btn-secondary">
-      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>
+      <svg class="icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>
       <span id="btn-here-label">Station an meinem Standort</span>
     </button>
     <p id="location-status" class="feedback is-error" role="status" aria-live="polite"></p>
@@ -68,7 +78,7 @@
   <!-- Ergebnis: Links und QR-Code -->
   <section id="screen-result" class="screen" hidden>
     <div class="badge-icon">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 21V4M5 4h11l-2 4 2 4H5"/></svg>
+      <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 21V4M5 4h11l-2 4 2 4H5"/></svg>
     </div>
     <h1>Fertig!</h1>
     <p class="text-block">Schick deinen Freunden den Link oder lass sie den QR-Code scannen.</p>
@@ -133,6 +143,15 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.6/Sortable.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.5.0/lz-string.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+  <script>
+    // Hat unser Haupt-Skript gestartet? Es setzt data-ready am <html>-Element.
+    // Wenn nicht (Datei-Vorschau, blockiertes Skript), Ladehinweis zeigen.
+    window.addEventListener("load", function () {
+      if (!document.documentElement.dataset.ready) {
+        document.documentElement.classList.add("load-failed");
+      }
+    });
+  </script>
   <script type="module" src="js/ui-create.js"></script>
 </body>
 </html>
