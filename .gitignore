@@ -1,1 +1,6 @@
 .DS_Store
+
+# Private Projektnotizen – nur lokal, nicht veröffentlichen
+CLAUDE.md
+BRIEFING.md
+SPEC.md
