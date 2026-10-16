@@ -805,3 +805,62 @@ h2 {
   color: var(--color-muted);
   font-size: 0.9rem;
 }
+
+/* ---------- Startseite ---------- */
+
+#screen-home {
+  min-height: 100vh;
+  justify-content: center;
+  text-align: center;
+}
+
+#screen-home .brand {
+  align-self: center;
+}
+
+/* Link als Button: Unterstreichung weg */
+a.btn {
+  text-decoration: none;
+}
+
+.draft-info {
+  margin: -4px 0 0;
+  color: var(--color-muted);
+  font-size: 0.9rem;
+}
+
+.draft-info[hidden] {
+  display: none;
+}
+
+.home-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 16px;
+  padding: var(--space);
+  text-align: left;
+  background: var(--color-surface);
+  border: 3px solid var(--color-text);
+  border-radius: var(--radius);
+  box-shadow: 5px 5px 0 var(--color-secondary);
+}
+
+.home-card h2 {
+  margin: 0;
+}
+
+.privacy-note {
+  margin: 8px 0 0;
+  color: var(--color-muted);
+  font-size: 0.85rem;
+}
+
+a.brand {
+  align-self: flex-start;
+  text-decoration: none;
+}
+
+.intro-text {
+  margin: 0;
+}

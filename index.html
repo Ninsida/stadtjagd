@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Stadtjagd – Schnitzeljagd durch deine Stadt</title>
+  <meta name="description" content="In wenigen Minuten eine private Schnitzeljagd durch deine Stadt erstellen und per Link mit Freunden spielen. Ohne App, ohne Konto.">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <main id="screen-home" class="screen">
+    <p class="brand">Stadtjagd</p>
+    <div class="badge-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6l6-3 6 3 6-3v15l-6 3-6-3-6 3z"/><path d="M9 3v15M15 6v15"/></svg>
+    </div>
+    <h1>Schnitzeljagd durch deine Stadt</h1>
+    <p class="intro-text">Rätsel auf die Karte setzen, Link verschicken, losrennen.
+      In wenigen Minuten fertig – ohne App und ohne Konto.</p>
+
+    <a id="btn-create" class="btn btn-primary" href="create.html">Jagd erstellen</a>
+    <p id="draft-info" class="draft-info" hidden></p>
+
+    <section class="home-card" aria-labelledby="play-heading">
+      <h2 id="play-heading">Jagd spielen</h2>
+      <p class="field-help">Öffne den Link oder scanne den QR-Code, den du bekommen hast.
+        Oder füge den Link hier ein:</p>
+      <form id="link-form" class="answer-form" autocomplete="off">
+        <label for="link-input" class="visually-hidden">Link zur Jagd</label>
+        <input id="link-input" type="text" inputmode="url" placeholder="Link einfügen" autocapitalize="off" spellcheck="false" required>
+        <button type="submit" class="btn btn-secondary">Los</button>
+      </form>
+      <p id="link-error" class="feedback is-error" role="status" aria-live="polite"></p>
+    </section>
+
+    <p class="privacy-note">Kein Konto, kein Tracking. Fortschritt und Entwürfe bleiben nur auf deinem Gerät.</p>
+  </main>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.5.0/lz-string.min.js"></script>
+  <script type="module" src="js/ui-index.js"></script>
+</body>
+</html>
